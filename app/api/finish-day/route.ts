@@ -1,4 +1,4 @@
-import { generateObject } from 'ai';
+import { generateText, Output } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 import { STICKERS } from '@/lib/stickers';
@@ -30,25 +30,33 @@ export async function POST(req: Request) {
 
   const journalContext = buildJournalContext(dayData, customSectionDefinitions ?? []);
 
-  const { object } = await generateObject({
-    model: anthropic('claude-haiku-4-5-20251001'),
-    schema: z.object({
-      summary: z.string().describe('A concise, warm day summary (2-3 sentences). Reference the day\'s intention if one was set and reflect on how the day aligned with it. Highlight one or two specific moments from entries. End with a brief encouraging note. If the journal is mostly empty, give a kind one-liner. Write in a personal tone as if talking to a friend.'),
-      stickers: z.array(z.string()).describe('An array of 1-4 sticker IDs earned today, based on the entries. Only award stickers clearly supported by what they wrote.'),
-    }),
-    system: `You are Lumina, a warm and supportive journal companion. The user has finished their day and wants a brief summary/reflection.
+  try {
+    const result = await generateText({
+      model: anthropic('claude-haiku-4-5-20251001'),
+      output: Output.object({
+        schema: z.object({
+          summary: z.string().describe('A concise, warm day summary (2-3 sentences). Reference the day\'s intention if one was set and reflect on how the day aligned with it. Highlight one or two specific moments from entries. End with a brief encouraging note. If the journal is mostly empty, give a kind one-liner. Write in a personal tone as if talking to a friend.'),
+          stickers: z.array(z.string()).describe('An array of 1-4 sticker IDs earned today, based on the entries. Only award stickers clearly supported by what they wrote.'),
+        }),
+      }),
+      system: `You are Lumina, a warm and supportive journal companion. The user has finished their day and wants a brief summary/reflection.
 
 Available sticker IDs:
 ${stickerList}`,
-    prompt: `Here is the journal for ${dateKey}:\n\n${journalContext}`,
-    abortSignal: req.signal,
-  });
+      prompt: `Here is the journal for ${dateKey}:\n\n${journalContext}`,
+      abortSignal: req.signal,
+    });
 
-  const validStickers = (object.stickers ?? []).filter((id: string) => stickerIds.has(id));
-  return Response.json({
-    summary: object.summary,
-    stickers: validStickers.slice(0, 4),
-  });
+    const object = result.object;
+    const validStickers = (object?.stickers ?? []).filter((id: string) => stickerIds.has(id));
+    return Response.json({
+      summary: object?.summary ?? '',
+      stickers: validStickers.slice(0, 4),
+    });
+  } catch (error) {
+    console.error('finish-day AI error:', error);
+    return Response.json({ error: 'Failed to generate summary' }, { status: 500 });
+  }
 }
 
 function buildJournalContext(
