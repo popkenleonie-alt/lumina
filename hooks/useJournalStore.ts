@@ -57,7 +57,10 @@ export interface DayData {
   };
   foodEntries: FoodEntry[];
   beliefs: BeliefEntry[];
+  intention: string;
   customSections: Record<string, CustomSectionData>;
+  notes: string;
+  notePhotos: string[];
   stickers: string[];
   daySummary: string;
 }
@@ -75,6 +78,7 @@ const defaultDayData: DayData = {
   dreamJournal: '',
   doneList: [],
   badges: [],
+  intention: '',
   cycleTracker: { phase: null, mood: null },
   foodJournal: {
     morning: { text: '', photos: [] },
@@ -85,6 +89,8 @@ const defaultDayData: DayData = {
   beliefs: [],
   foodEntries: [],
   customSections: {},
+  notes: '',
+  notePhotos: [],
   stickers: [],
   daySummary: '',
 };
@@ -250,6 +256,18 @@ export function useJournalStore(selectedDate: Date) {
     }));
   }, []);
 
+  const updateIntention = useCallback((intention: string) => {
+    setData(prev => ({ ...prev, intention }));
+  }, []);
+
+  const updateNotes = useCallback((notes: string) => {
+    setData(prev => ({ ...prev, notes }));
+  }, []);
+
+  const updateNotePhotos = useCallback((notePhotos: string[]) => {
+    setData(prev => ({ ...prev, notePhotos }));
+  }, []);
+
   const updateStickers = useCallback((stickers: string[]) => {
     setData(prev => ({ ...prev, stickers }));
   }, []);
@@ -274,6 +292,9 @@ export function useJournalStore(selectedDate: Date) {
     deleteCustomSection,
     reorderCustomSections,
     updateCustomSectionData,
+    updateIntention,
+    updateNotes,
+    updateNotePhotos,
     updateStickers,
     updateDaySummary,
   };

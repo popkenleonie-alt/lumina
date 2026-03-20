@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   const { object } = await generateObject({
     model: anthropic('claude-haiku-4-5-20251001'),
     schema: z.object({
-      summary: z.string().describe('A short, warm day summary (3-5 sentences). Highlight positive moments, acknowledge efforts, and end with a gentle, encouraging note. Be specific — reference actual things they wrote. If the journal is mostly empty, give a kind, brief note about taking time for themselves. Write in a flowing, personal tone as if talking to a friend.'),
+      summary: z.string().describe('A concise, warm day summary (2-3 sentences). Reference the day\'s intention if one was set and reflect on how the day aligned with it. Highlight one or two specific moments from entries. End with a brief encouraging note. If the journal is mostly empty, give a kind one-liner. Write in a personal tone as if talking to a friend.'),
       stickers: z.array(z.string()).describe('An array of 1-4 sticker IDs earned today, based on the entries. Only award stickers clearly supported by what they wrote.'),
     }),
     system: `You are Lumina, a warm and supportive journal companion. The user has finished their day and wants a brief summary/reflection.
@@ -53,8 +53,8 @@ function buildJournalContext(
 ): string {
   const parts: string[] = [];
 
-  if (data.dreamJournal) {
-    parts.push(`Dream Journal: ${data.dreamJournal}`);
+  if (data.intention) {
+    parts.push(`Today's intention: ${data.intention}`);
   }
 
   if (data.doneList?.length > 0) {
@@ -94,6 +94,10 @@ function buildJournalContext(
       })
       .join('\n---\n');
     parts.push(`Food journal:\n${foodTexts}`);
+  }
+
+  if (data.notes) {
+    parts.push(`Additional thoughts: ${data.notes}`);
   }
 
   for (const def of customSectionDefinitions) {

@@ -73,10 +73,10 @@ export default function LuminaJournal() {
   }, [selectedDate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-violet-950 to-gray-950">
-      <div className="mx-auto max-w-[430px] md:max-w-none min-h-screen bg-gradient-to-b from-violet-950/50 to-gray-950/50">
+    <div className="min-h-screen bg-gradient-to-b from-black to-purple-950">
+      <div className="mx-auto max-w-[430px] md:max-w-none min-h-screen">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-gray-950/80 backdrop-blur-md border-b border-violet-500/20">
+        <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-violet-500/20">
           <div className="px-4 pt-4 pb-2">
             <h1 className="font-serif text-2xl font-bold text-center bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent">
               Lumina Journal

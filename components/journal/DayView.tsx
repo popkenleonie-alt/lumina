@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain, Award } from 'lucide-react';
+import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain, Award, Sun, Eye, EyeOff, MessageSquare } from 'lucide-react';
 import { formatDisplayDate, isTodayCheck } from '@/lib/dateHelpers';
 import { useJournalStore, type CustomSectionDefinition } from '@/hooks/useJournalStore';
 import { SectionCard } from './SectionCard';
@@ -14,6 +14,7 @@ import { FoodJournal } from './sections/FoodJournal';
 import { Beliefs } from './sections/Beliefs';
 import { Stickers } from './sections/Stickers';
 import { CustomSection } from './sections/CustomSection';
+import { AdditionalThoughts } from './sections/AdditionalThoughts';
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useHiddenSections } from '@/hooks/useHiddenSections';
 
 interface DayViewProps {
   selectedDate: Date;
@@ -46,8 +48,13 @@ export function DayView({ selectedDate }: DayViewProps) {
     updateCustomSection,
     deleteCustomSection,
     reorderCustomSections,
+    updateIntention,
+    updateNotes,
+    updateNotePhotos,
     updateCustomSectionData,
   } = useJournalStore(selectedDate);
+
+  const { hiddenSections, toggleSection } = useHiddenSections();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSection, setEditingSection] = useState<CustomSectionDefinition | null>(null);
@@ -103,10 +110,25 @@ export function DayView({ selectedDate }: DayViewProps) {
         )}
       </div>
 
+      {/* Daily Intention */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Sun className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-medium text-violet-200">Today&apos;s Intention</span>
+        </div>
+        <Input
+          value={data.intention ?? ''}
+          onChange={(e) => updateIntention(e.target.value)}
+          placeholder="What do you want to focus on today?"
+          readOnly={readOnly}
+          className="bg-white/5 border-violet-500/30 text-violet-100 placeholder:text-violet-400/50 focus-visible:ring-amber-400/50"
+        />
+      </div>
+
       {/* AI Assistant - full width, only show for today */}
       {isToday && (
         <div className="mb-4">
-          <SectionCard title="Lumina AI" icon={<Sparkles className="w-5 h-5" />} accentColor="purple">
+          <SectionCard title="Lumina AI" icon={<Sparkles className="w-5 h-5" />} accentColor="purple" hidden={hiddenSections.has('lumina-ai')} onToggleVisibility={() => toggleSection('lumina-ai')}>
             <AIAssistant
               journalData={data}
               customSectionDefinitions={customSectionDefinitions}
@@ -125,7 +147,7 @@ export function DayView({ selectedDate }: DayViewProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Dream Journal */}
         <div className={cn('rounded-2xl h-full', highlightedSections.has('dream-journal') && highlightRing)}>
-          <SectionCard title="Dream Journal" icon={<Moon className="w-5 h-5" />} accentColor="purple">
+          <SectionCard title="Dream Journal" icon={<Moon className="w-5 h-5" />} accentColor="purple" hidden={hiddenSections.has('dream-journal')} onToggleVisibility={() => toggleSection('dream-journal')}>
             <DreamJournal
               value={data.dreamJournal}
               onChange={updateDreamJournal}
@@ -136,7 +158,7 @@ export function DayView({ selectedDate }: DayViewProps) {
 
         {/* Done List */}
         <div className={cn('rounded-2xl h-full', highlightedSections.has('done-list') && highlightRing)}>
-          <SectionCard title="Done List" icon={<CheckCircle className="w-5 h-5" />} accentColor="green">
+          <SectionCard title="Done List" icon={<CheckCircle className="w-5 h-5" />} accentColor="green" hidden={hiddenSections.has('done-list')} onToggleVisibility={() => toggleSection('done-list')}>
             <DoneList
               items={data.doneList}
               onChange={updateDoneList}
@@ -147,7 +169,7 @@ export function DayView({ selectedDate }: DayViewProps) {
 
         {/* Cycle Tracker */}
         <div className={cn('rounded-2xl h-full', highlightedSections.has('cycle-tracker') && highlightRing)}>
-          <SectionCard title="Cycle Tracker" icon={<Heart className="w-5 h-5" />} accentColor="rose">
+          <SectionCard title="Cycle Tracker" icon={<Heart className="w-5 h-5" />} accentColor="rose" hidden={hiddenSections.has('cycle-tracker')} onToggleVisibility={() => toggleSection('cycle-tracker')}>
             <CycleTracker
               data={data.cycleTracker}
               onChange={updateCycleTracker}
@@ -158,7 +180,7 @@ export function DayView({ selectedDate }: DayViewProps) {
 
         {/* Food Journal — spans full width on desktop */}
         <div className={cn('rounded-2xl md:col-span-2', highlightedSections.has('food-journal') && highlightRing)}>
-          <SectionCard title="Food Journal" icon={<UtensilsCrossed className="w-5 h-5" />} accentColor="amber">
+          <SectionCard title="Food Journal" icon={<UtensilsCrossed className="w-5 h-5" />} accentColor="amber" hidden={hiddenSections.has('food-journal')} onToggleVisibility={() => toggleSection('food-journal')}>
             <FoodJournal
               entries={data.foodEntries ?? []}
               onChange={updateFoodEntries}
@@ -169,7 +191,7 @@ export function DayView({ selectedDate }: DayViewProps) {
 
         {/* Beliefs */}
         <div className={cn('rounded-2xl md:col-span-2', highlightedSections.has('beliefs') && highlightRing)}>
-          <SectionCard title="Beliefs" icon={<Brain className="w-5 h-5" />} accentColor="teal">
+          <SectionCard title="Beliefs" icon={<Brain className="w-5 h-5" />} accentColor="teal" hidden={hiddenSections.has('beliefs')} onToggleVisibility={() => toggleSection('beliefs')}>
             <Beliefs
               entries={data.beliefs ?? []}
               onChange={updateBeliefs}
@@ -181,7 +203,7 @@ export function DayView({ selectedDate }: DayViewProps) {
         {/* Stickers & Day Summary */}
         {((data.stickers ?? []).length > 0 || data.daySummary) && (
           <div className="rounded-2xl md:col-span-2">
-            <SectionCard title="Day Reflection" icon={<Award className="w-5 h-5" />} accentColor="amber">
+            <SectionCard title="Day Reflection" icon={<Award className="w-5 h-5" />} accentColor="amber" hidden={hiddenSections.has('day-reflection')} onToggleVisibility={() => toggleSection('day-reflection')}>
               <Stickers
                 stickerIds={data.stickers ?? []}
                 daySummary={data.daySummary ?? ''}
@@ -200,6 +222,8 @@ export function DayView({ selectedDate }: DayViewProps) {
                   title={section.name}
                   icon={section.icon}
                   accentColor={section.color}
+                  hidden={hiddenSections.has(`custom-${section.id}`)}
+                  onToggleVisibility={() => toggleSection(`custom-${section.id}`)}
                   showMenu={isToday}
                   onRename={() => handleRename(section)}
                   onChangeColor={() => {
@@ -240,6 +264,19 @@ export function DayView({ selectedDate }: DayViewProps) {
               )}
             </div>
           ))}
+
+        {/* Additional Thoughts */}
+        <div className={cn('rounded-2xl md:col-span-2', highlightedSections.has('additional-thoughts') && highlightRing)}>
+          <SectionCard title="Additional Thoughts" icon={<MessageSquare className="w-5 h-5" />} accentColor="blue" hidden={hiddenSections.has('additional-thoughts')} onToggleVisibility={() => toggleSection('additional-thoughts')}>
+            <AdditionalThoughts
+              text={data.notes ?? ''}
+              photos={data.notePhotos ?? []}
+              onChangeText={updateNotes}
+              onChangePhotos={updateNotePhotos}
+              readOnly={readOnly}
+            />
+          </SectionCard>
+        </div>
 
         {/* Add Section Button */}
         {isToday && (
