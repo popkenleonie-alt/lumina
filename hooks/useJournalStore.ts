@@ -7,6 +7,7 @@ export interface ChecklistItem {
   id: string;
   text: string;
   checked: boolean;
+  timestamp?: string;
 }
 
 export interface MealEntry {

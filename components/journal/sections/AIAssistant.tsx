@@ -132,7 +132,8 @@ Food entries: ${(journalData.foodEntries ?? []).length > 0 ? journalData.foodEnt
           const newItems: ChecklistItem[] = items.map((text, i) => ({
             id: `ai-${Date.now()}-${i}`,
             text,
-            checked: false,
+            checked: true,
+            timestamp: new Date().toISOString(),
           }));
           onUpdateDoneList([...data.doneList, ...newItems]);
           onSectionHighlight?.('done-list');
