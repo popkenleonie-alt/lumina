@@ -40,7 +40,7 @@ export function DoneList({ items, onChange, readOnly }: DoneListProps) {
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex items-center gap-3 p-2 rounded-lg bg-white/50 group"
+          className="flex items-center gap-3 p-2 rounded-lg bg-white/5 group"
         >
           <button
             onClick={() => !readOnly && toggleItem(item.id)}
@@ -60,8 +60,8 @@ export function DoneList({ items, onChange, readOnly }: DoneListProps) {
           </button>
           <span
             className={cn(
-              'flex-1 text-sm transition-all',
-              item.checked && 'line-through text-muted-foreground'
+              'flex-1 text-sm text-violet-100 transition-all',
+              item.checked && 'line-through !text-violet-400/50'
             )}
           >
             {item.text}
@@ -69,9 +69,9 @@ export function DoneList({ items, onChange, readOnly }: DoneListProps) {
           {!readOnly && (
             <button
               onClick={() => removeItem(item.id)}
-              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-black/5 transition-all"
+              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 transition-all"
             >
-              <X className="w-4 h-4 text-muted-foreground" />
+              <X className="w-4 h-4 text-violet-400" />
             </button>
           )}
         </div>
@@ -84,11 +84,11 @@ export function DoneList({ items, onChange, readOnly }: DoneListProps) {
             onChange={(e) => setNewItem(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addItem()}
             placeholder="Add new item..."
-            className="flex-1 px-3 py-2 rounded-lg bg-white/60 border border-emerald-200/50 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-violet-500/20 text-sm text-violet-100 placeholder:text-violet-400/40 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
           />
           <button
             onClick={addItem}
-            className="px-3 py-2 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors"
+            className="px-3 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
           >
             <Plus className="w-4 h-4" />
           </button>

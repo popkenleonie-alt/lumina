@@ -49,7 +49,7 @@ export function SectionCard({
   return (
     <div
       className={cn(
-        'h-full bg-white/70 backdrop-blur-md rounded-2xl border-l-4 shadow-sm overflow-hidden transition-all duration-300',
+        'h-full bg-white/5 backdrop-blur-md rounded-2xl border-l-4 shadow-sm overflow-hidden transition-all duration-300',
         accentColors[accentColor] || 'border-l-gray-400'
       )}
     >
@@ -58,15 +58,15 @@ export function SectionCard({
         className="w-full flex items-center justify-between px-4 py-3 text-left"
       >
         <div className="flex items-center gap-2">
-          {icon && <span className="flex items-center text-muted-foreground">{icon}</span>}
-          <h3 className="font-serif font-semibold text-foreground">{title}</h3>
+          {icon && <span className="flex items-center text-violet-400">{icon}</span>}
+          <h3 className="font-serif font-semibold text-violet-100">{title}</h3>
         </div>
         <div className="flex items-center gap-1">
           {showMenu && (
             <DropdownMenu>
               <DropdownMenuTrigger
                 onClick={(e) => e.stopPropagation()}
-                className="p-1 rounded-lg hover:bg-black/5 transition-colors"
+                className="p-1 rounded-lg hover:bg-white/10 transition-colors"
               >
                 <MoreVertical className="w-4 h-4 text-muted-foreground" />
               </DropdownMenuTrigger>

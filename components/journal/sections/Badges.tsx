@@ -35,8 +35,8 @@ export function Badges({ selectedBadges, onToggle, readOnly }: BadgesProps) {
             className={cn(
               'w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all',
               isSelected
-                ? 'bg-gradient-to-br from-pink-200 to-rose-200 shadow-md'
-                : 'bg-white/50 hover:bg-white/80',
+                ? 'bg-gradient-to-br from-violet-600/30 to-purple-600/30 shadow-md ring-1 ring-violet-500/30'
+                : 'bg-white/5 hover:bg-white/10',
               isAnimating && 'animate-bounce',
               readOnly && 'cursor-not-allowed'
             )}

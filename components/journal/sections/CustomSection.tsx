@@ -46,7 +46,7 @@ function TextSection({ value, onChange, readOnly, color }: { value: string; onCh
       placeholder="Write something..."
       disabled={readOnly}
       className={cn(
-        'w-full min-h-[100px] p-3 rounded-xl bg-white/60 border border-gray-200/50 text-foreground placeholder:text-muted-foreground/60 resize-none focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed',
+        'w-full min-h-[100px] p-3 rounded-xl bg-white/5 border border-violet-500/20 text-violet-100 placeholder:text-violet-400/40 resize-none focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed',
         borderColor
       )}
     />
@@ -84,7 +84,7 @@ function ChecklistSection({ items, onChange, readOnly, color }: { items: Checkli
   return (
     <div className="space-y-2">
       {items.map((item) => (
-        <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg bg-white/50 group">
+        <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg bg-white/5 group">
           <button
             onClick={() => !readOnly && toggleItem(item.id)}
             disabled={readOnly}
@@ -99,12 +99,12 @@ function ChecklistSection({ items, onChange, readOnly, color }: { items: Checkli
               </svg>
             )}
           </button>
-          <span className={cn('flex-1 text-sm', item.checked && 'line-through text-muted-foreground')}>
+          <span className={cn('flex-1 text-sm text-violet-100', item.checked && 'line-through text-violet-400/50')}>
             {item.text}
           </span>
           {!readOnly && (
-            <button onClick={() => removeItem(item.id)} className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-black/5">
-              <X className="w-4 h-4 text-muted-foreground" />
+            <button onClick={() => removeItem(item.id)} className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10">
+              <X className="w-4 h-4 text-violet-400" />
             </button>
           )}
         </div>
@@ -117,9 +117,9 @@ function ChecklistSection({ items, onChange, readOnly, color }: { items: Checkli
             onChange={(e) => setNewItem(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addItem()}
             placeholder="Add new item..."
-            className="flex-1 px-3 py-2 rounded-lg bg-white/60 border border-gray-200/50 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-violet-500/20 text-sm text-violet-100 placeholder:text-violet-400/40 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
           />
-          <button onClick={addItem} className="px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200">
+          <button onClick={addItem} className="px-3 py-2 rounded-lg bg-violet-500/20 text-violet-300 hover:bg-violet-500/30">
             <Plus className="w-4 h-4" />
           </button>
         </div>
@@ -131,16 +131,7 @@ function ChecklistSection({ items, onChange, readOnly, color }: { items: Checkli
 function PhotoSection({ photos, onChange, readOnly, color }: { photos: string[]; onChange: (photos: string[]) => void; readOnly?: boolean; color: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const btnColor = {
-    purple: 'bg-violet-100 text-violet-600 hover:bg-violet-200',
-    pink: 'bg-pink-100 text-pink-600 hover:bg-pink-200',
-    rose: 'bg-rose-100 text-rose-600 hover:bg-rose-200',
-    green: 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200',
-    blue: 'bg-blue-100 text-blue-600 hover:bg-blue-200',
-    teal: 'bg-teal-100 text-teal-600 hover:bg-teal-200',
-    amber: 'bg-amber-100 text-amber-600 hover:bg-amber-200',
-    orange: 'bg-orange-100 text-orange-600 hover:bg-orange-200',
-  }[color] || 'bg-gray-100 text-gray-600 hover:bg-gray-200';
+  const btnColor = 'bg-violet-500/20 text-violet-300 hover:bg-violet-500/30';
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -187,16 +178,7 @@ function PhotoSection({ photos, onChange, readOnly, color }: { photos: string[];
 }
 
 function RatingSection({ value, onChange, readOnly, color }: { value: number; onChange: (v: number) => void; readOnly?: boolean; color: string }) {
-  const starColor = {
-    purple: 'text-violet-400',
-    pink: 'text-pink-400',
-    rose: 'text-rose-400',
-    green: 'text-emerald-400',
-    blue: 'text-blue-400',
-    teal: 'text-teal-400',
-    amber: 'text-amber-400',
-    orange: 'text-orange-400',
-  }[color] || 'text-gray-400';
+  const starColor = 'text-violet-400';
 
   return (
     <div className="flex gap-2 justify-center py-2">
@@ -207,7 +189,7 @@ function RatingSection({ value, onChange, readOnly, color }: { value: number; on
           disabled={readOnly}
           className={cn('transition-transform hover:scale-110', readOnly && 'cursor-not-allowed')}
         >
-          <Star className={cn('w-8 h-8', star <= value ? starColor : 'text-gray-200', star <= value && 'fill-current')} />
+          <Star className={cn('w-8 h-8', star <= value ? starColor : 'text-white/10', star <= value && 'fill-current')} />
         </button>
       ))}
     </div>

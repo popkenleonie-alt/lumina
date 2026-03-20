@@ -60,14 +60,14 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
       <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
-        <div className="w-full max-w-[430px] md:max-w-lg bg-white/95 backdrop-blur-md rounded-t-3xl shadow-2xl p-6 animate-in slide-in-from-bottom duration-300">
+        <div className="w-full max-w-[430px] md:max-w-lg bg-gray-900/95 backdrop-blur-md rounded-t-3xl shadow-2xl p-6 animate-in slide-in-from-bottom duration-300">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="font-serif text-xl font-semibold text-foreground">Add Custom Section</h2>
+            <h2 className="font-serif text-xl font-semibold text-violet-100">Add Custom Section</h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-black/5 transition-colors"
+              className="p-2 rounded-full hover:bg-white/10 transition-colors text-violet-300"
             >
               <X className="w-5 h-5" />
             </button>
@@ -75,7 +75,7 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
 
           <div className="space-y-5">
             <div>
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              <label className="text-sm font-medium text-violet-300 mb-2 block">
                 Section Name
               </label>
               <Input
@@ -87,7 +87,7 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
             </div>
 
             <div>
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              <label className="text-sm font-medium text-violet-300 mb-2 block">
                 Choose an Icon
               </label>
               <div className="flex flex-wrap gap-2">
@@ -98,8 +98,8 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
                     className={cn(
                       'w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all',
                       selectedIcon === emoji
-                        ? 'bg-gradient-to-br from-pink-200 to-violet-200 scale-110 shadow-md'
-                        : 'bg-white/60 hover:bg-white/80'
+                        ? 'bg-gradient-to-br from-violet-600/40 to-purple-600/40 scale-110 shadow-md'
+                        : 'bg-white/5 hover:bg-white/10'
                     )}
                   >
                     {emoji}
@@ -109,7 +109,7 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
             </div>
 
             <div>
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              <label className="text-sm font-medium text-violet-300 mb-2 block">
                 Accent Color
               </label>
               <div className="flex gap-3">
@@ -130,7 +130,7 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
             </div>
 
             <div>
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">
+              <label className="text-sm font-medium text-violet-300 mb-2 block">
                 Section Type
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -141,12 +141,12 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
                     className={cn(
                       'p-3 rounded-xl text-left transition-all',
                       selectedType === type.value
-                        ? 'bg-gradient-to-br from-pink-100 to-violet-100 ring-2 ring-pink-300'
-                        : 'bg-white/60 hover:bg-white/80'
+                        ? 'bg-violet-500/15 ring-2 ring-violet-500/50'
+                        : 'bg-white/5 hover:bg-white/10'
                     )}
                   >
-                    <div className="font-medium text-sm text-foreground">{type.label}</div>
-                    <div className="text-xs text-muted-foreground">{type.description}</div>
+                    <div className="font-medium text-sm text-violet-100">{type.label}</div>
+                    <div className="text-xs text-violet-400">{type.description}</div>
                   </button>
                 ))}
               </div>
@@ -155,7 +155,7 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
             <Button
               onClick={handleAdd}
               disabled={!name.trim()}
-              className="w-full bg-gradient-to-r from-pink-400 to-violet-400 hover:from-pink-500 hover:to-violet-500 text-white rounded-xl py-3"
+              className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-xl py-3"
             >
               Add Section
             </Button>

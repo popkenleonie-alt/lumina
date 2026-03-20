@@ -259,7 +259,7 @@ Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
       {/* Toggle Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="w-full flex items-center justify-between text-sm text-violet-400 hover:text-violet-300 transition-colors"
       >
         <span className="flex items-center gap-1">
           <Sparkles className="w-3 h-3" />
@@ -279,7 +279,7 @@ Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
                   onClick={() => {
                     sendMessage({ text: qp.prompt });
                   }}
-                  className="px-3 py-1.5 text-xs rounded-full bg-gradient-to-r from-pink-100 to-purple-100 text-purple-700 hover:from-pink-200 hover:to-purple-200 transition-colors"
+                  className="px-3 py-1.5 text-xs rounded-full bg-violet-500/15 text-violet-300 hover:bg-violet-500/25 transition-colors"
                 >
                   {qp.label}
                 </button>
@@ -301,12 +301,12 @@ Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
                     className={cn(
                       'rounded-xl px-3 py-2 text-sm',
                       isAssistant
-                        ? 'bg-gradient-to-br from-purple-50 to-pink-50 text-foreground'
-                        : 'bg-muted/50 ml-8'
+                        ? 'bg-violet-500/10 text-violet-100'
+                        : 'bg-white/5 text-violet-200 ml-8'
                     )}
                   >
                     {isAssistant && (
-                      <div className="flex items-center gap-1 text-xs text-purple-500 mb-1">
+                      <div className="flex items-center gap-1 text-xs text-violet-400 mb-1">
                         <Sparkles className="w-3 h-3" />
                         Lumina
                       </div>
@@ -319,7 +319,7 @@ Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
                         {pills.map((pill) => (
                           <span
                             key={pill.id}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100/80 text-purple-700 text-xs"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 text-xs"
                           >
                             {pill.icon} {pill.label}
                           </span>
@@ -328,11 +328,11 @@ Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
                     )}
 
                     {isAssistant && text && (
-                      <div className="flex gap-1 mt-2 pt-2 border-t border-purple-100/50">
+                      <div className="flex gap-1 mt-2 pt-2 border-t border-violet-500/20">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-xs gap-1 text-purple-600 hover:text-purple-700 hover:bg-purple-100/50"
+                          className="h-7 text-xs gap-1 text-violet-400 hover:text-violet-300 hover:bg-violet-500/20"
                           onClick={() => handleCopy(text, message.id)}
                         >
                           {copiedId === message.id ? (
@@ -358,31 +358,31 @@ Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask Lumina anything..."
               disabled={isLoading}
-              className="flex-1 px-3 py-2 text-sm rounded-xl bg-white/50 border border-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-300/50 placeholder:text-muted-foreground/60"
+              className="flex-1 px-3 py-2 text-sm rounded-xl bg-white/5 border border-violet-500/30 text-violet-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder:text-violet-400/50"
             />
             <Button
               type="submit"
               size="sm"
               disabled={isLoading || !input.trim()}
-              className="h-9 w-9 rounded-xl bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white"
+              className="h-9 w-9 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white"
             >
               <Send className="w-4 h-4" />
             </Button>
           </form>
 
           {isLoading && (
-            <div className="flex items-center gap-2 text-xs text-purple-400">
+            <div className="flex items-center gap-2 text-xs text-violet-400">
               <div className="flex gap-1">
                 <span
-                  className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"
+                  className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce"
                   style={{ animationDelay: '0ms' }}
                 />
                 <span
-                  className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"
+                  className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce"
                   style={{ animationDelay: '150ms' }}
                 />
                 <span
-                  className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"
+                  className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce"
                   style={{ animationDelay: '300ms' }}
                 />
               </div>

@@ -22,7 +22,7 @@ export function CycleTracker({ data, onChange, readOnly }: CycleTrackerProps) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-xs font-medium text-muted-foreground mb-2 block">Cycle Phase</label>
+        <label className="text-xs font-medium text-violet-300 mb-2 block">Cycle Phase</label>
         <div className="flex flex-wrap gap-2">
           {phases.map((phase) => (
             <button
@@ -33,7 +33,7 @@ export function CycleTracker({ data, onChange, readOnly }: CycleTrackerProps) {
                 'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
                 data.phase === phase.value
                   ? phase.color
-                  : 'bg-white/50 text-muted-foreground border-gray-200 hover:bg-white/80',
+                  : 'bg-white/5 text-violet-300 border-violet-500/20 hover:bg-white/10',
                 readOnly && 'cursor-not-allowed'
               )}
             >
@@ -44,7 +44,7 @@ export function CycleTracker({ data, onChange, readOnly }: CycleTrackerProps) {
       </div>
 
       <div>
-        <label className="text-xs font-medium text-muted-foreground mb-2 block">Mood</label>
+        <label className="text-xs font-medium text-violet-300 mb-2 block">Mood</label>
         <div className="flex gap-2">
           {moods.map((mood) => (
             <button
@@ -54,8 +54,8 @@ export function CycleTracker({ data, onChange, readOnly }: CycleTrackerProps) {
               className={cn(
                 'w-9 h-9 rounded-xl flex items-center justify-center text-lg transition-all',
                 data.mood === mood
-                  ? 'bg-gradient-to-br from-rose-200 to-pink-200 scale-110 shadow-md'
-                  : 'bg-white/50 hover:bg-white/80',
+                  ? 'bg-gradient-to-br from-violet-600/30 to-purple-600/30 scale-110 shadow-md ring-1 ring-violet-500/30'
+                  : 'bg-white/5 hover:bg-white/10',
                 readOnly && 'cursor-not-allowed'
               )}
             >

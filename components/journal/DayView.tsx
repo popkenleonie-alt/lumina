@@ -90,11 +90,11 @@ export function DayView({ selectedDate }: DayViewProps) {
     <div className="px-4 pb-24">
       {/* Date Header */}
       <div className="flex items-center justify-between py-2">
-        <h2 className="font-serif text-lg font-semibold text-foreground">
+        <h2 className="font-serif text-lg font-semibold text-violet-100">
           {formatDisplayDate(selectedDate)}
         </h2>
         {readOnly && (
-          <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 text-xs text-violet-300">
             <Lock className="w-3 h-3" />
             Read only
           </span>
@@ -210,7 +210,7 @@ export function DayView({ selectedDate }: DayViewProps) {
                   {index > 0 && (
                     <button
                       onClick={() => reorderCustomSections(index, index - 1)}
-                      className="p-1 rounded bg-white/80 shadow-sm hover:bg-white"
+                      className="p-1 rounded bg-white/10 shadow-sm hover:bg-white/20 text-violet-300"
                     >
                       <ArrowUp className="w-3 h-3" />
                     </button>
@@ -218,7 +218,7 @@ export function DayView({ selectedDate }: DayViewProps) {
                   {index < customSectionDefinitions.length - 1 && (
                     <button
                       onClick={() => reorderCustomSections(index, index + 1)}
-                      className="p-1 rounded bg-white/80 shadow-sm hover:bg-white"
+                      className="p-1 rounded bg-white/10 shadow-sm hover:bg-white/20 text-violet-300"
                     >
                       <ArrowDown className="w-3 h-3" />
                     </button>
@@ -232,7 +232,7 @@ export function DayView({ selectedDate }: DayViewProps) {
         {isToday && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="w-full py-3 rounded-2xl border-2 border-dashed border-pink-300 text-pink-500 flex items-center justify-center gap-2 hover:bg-pink-50/50 transition-colors md:col-span-2"
+            className="w-full py-3 rounded-2xl border-2 border-dashed border-violet-500/40 text-violet-400 flex items-center justify-center gap-2 hover:bg-violet-500/10 transition-colors md:col-span-2"
           >
             <Plus className="w-5 h-5" />
             <span className="font-medium">Add Section</span>

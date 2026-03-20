@@ -67,7 +67,7 @@ function MealInput({ label, icon: Icon, value, onChange, readOnly }: MealInputPr
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Icon className="w-4 h-4 text-muted-foreground" />
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        <span className="text-xs font-medium text-violet-300">{label}</span>
       </div>
       <div className="flex gap-2">
         <input
@@ -76,7 +76,7 @@ function MealInput({ label, icon: Icon, value, onChange, readOnly }: MealInputPr
           onChange={(e) => onChange({ text: e.target.value })}
           placeholder={`What did you have for ${label.toLowerCase()}?`}
           disabled={readOnly}
-          className="flex-1 px-3 py-2 rounded-lg bg-white/60 border border-amber-200/50 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-violet-500/20 text-sm text-violet-100 placeholder:text-violet-400/40 focus:outline-none focus:ring-2 focus:ring-violet-500/50 disabled:opacity-60 disabled:cursor-not-allowed"
         />
         {!readOnly && (
           <>
@@ -90,7 +90,7 @@ function MealInput({ label, icon: Icon, value, onChange, readOnly }: MealInputPr
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-3 py-2 rounded-lg bg-amber-100 text-amber-600 hover:bg-amber-200 transition-colors"
+              className="px-3 py-2 rounded-lg bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-colors"
             >
               <Camera className="w-4 h-4" />
             </button>
