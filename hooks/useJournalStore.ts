@@ -58,6 +58,8 @@ export interface DayData {
   foodEntries: FoodEntry[];
   beliefs: BeliefEntry[];
   customSections: Record<string, CustomSectionData>;
+  stickers: string[];
+  daySummary: string;
 }
 
 export interface CustomSectionDefinition {
@@ -83,6 +85,8 @@ const defaultDayData: DayData = {
   beliefs: [],
   foodEntries: [],
   customSections: {},
+  stickers: [],
+  daySummary: '',
 };
 
 export function useJournalStore(selectedDate: Date) {
@@ -213,6 +217,14 @@ export function useJournalStore(selectedDate: Date) {
     }));
   }, []);
 
+  const updateStickers = useCallback((stickers: string[]) => {
+    setData(prev => ({ ...prev, stickers }));
+  }, []);
+
+  const updateDaySummary = useCallback((daySummary: string) => {
+    setData(prev => ({ ...prev, daySummary }));
+  }, []);
+
   return {
     data,
     customSectionDefinitions,
@@ -229,5 +241,7 @@ export function useJournalStore(selectedDate: Date) {
     deleteCustomSection,
     reorderCustomSections,
     updateCustomSectionData,
+    updateStickers,
+    updateDaySummary,
   };
 }

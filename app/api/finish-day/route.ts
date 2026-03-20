@@ -1,5 +1,6 @@
-import { generateText } from 'ai';
+import { generateObject } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { z } from 'zod';
 import { STICKERS } from '@/lib/stickers';
 import type { DayData, CustomSectionDefinition } from '@/hooks/useJournalStore';
 
@@ -25,15 +26,13 @@ export async function POST(req: Request) {
 
   const journalContext = buildJournalContext(dayData, customSectionDefinitions);
 
-  const { text } = await generateText({
+  const { object } = await generateObject({
     model: anthropic('claude-haiku-4-5-20251001'),
+    schema: z.object({
+      summary: z.string().describe('A short, warm day summary (3-5 sentences). Highlight positive moments, acknowledge efforts, and end with a gentle, encouraging note. Be specific — reference actual things they wrote. If the journal is mostly empty, give a kind, brief note about taking time for themselves. Write in a flowing, personal tone as if talking to a friend.'),
+      stickers: z.array(z.string()).describe('An array of 1-4 sticker IDs earned today, based on the entries. Only award stickers clearly supported by what they wrote.'),
+    }),
     system: `You are Lumina, a warm and supportive journal companion. The user has finished their day and wants a brief summary/reflection.
-
-Based on the journal entries below, respond with ONLY a JSON object (no markdown, no backticks) with this exact shape:
-{"summary": "...", "stickers": ["...", "..."]}
-
-- "summary": A short, warm day summary (3-5 sentences). Highlight positive moments, acknowledge efforts, and end with a gentle, encouraging note. Be specific — reference actual things they wrote. If the journal is mostly empty, give a kind, brief note about taking time for themselves. Write in a flowing, personal tone as if talking to a friend.
-- "stickers": An array of 1-4 sticker IDs earned today, based on the entries. Only award stickers clearly supported by what they wrote.
 
 Available sticker IDs:
 ${stickerList}`,
@@ -41,16 +40,11 @@ ${stickerList}`,
     abortSignal: req.signal,
   });
 
-  try {
-    const parsed = JSON.parse(text);
-    const validStickers = (parsed.stickers ?? []).filter((id: string) => stickerIds.has(id));
-    return Response.json({
-      summary: parsed.summary ?? text,
-      stickers: validStickers.slice(0, 4),
-    });
-  } catch {
-    return Response.json({ summary: text, stickers: [] });
-  }
+  const validStickers = (object.stickers ?? []).filter((id: string) => stickerIds.has(id));
+  return Response.json({
+    summary: object.summary,
+    stickers: validStickers.slice(0, 4),
+  });
 }
 
 function buildJournalContext(

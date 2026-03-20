@@ -5,7 +5,7 @@ import { WeekStrip } from '@/components/journal/WeekStrip';
 import { DayView } from '@/components/journal/DayView';
 import { FloatingButton } from '@/components/journal/FloatingButton';
 import { FinishDayDrawer } from '@/components/journal/FinishDayDrawer';
-import { getNextDay, getPreviousDay, isTodayCheck } from '@/lib/dateHelpers';
+import { formatDateKey, getNextDay, getPreviousDay, isTodayCheck } from '@/lib/dateHelpers';
 
 export default function LuminaJournal() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -13,6 +13,7 @@ export default function LuminaJournal() {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
   const [showFinishDay, setShowFinishDay] = useState(false);
+  const [dayViewRevision, setDayViewRevision] = useState(0);
 
   const minSwipeDistance = 50;
 
@@ -27,11 +28,11 @@ export default function LuminaJournal() {
 
   const onTouchEnd = useCallback(() => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
-    
+
     if (isLeftSwipe) {
       setSlideDirection('left');
       setTimeout(() => {
@@ -46,6 +47,21 @@ export default function LuminaJournal() {
       }, 150);
     }
   }, [touchStart, touchEnd]);
+
+  const handleFinishDay = useCallback((summary: string, stickers: string[]) => {
+    const dateKey = formatDateKey(selectedDate);
+    const storageKey = `lumina-journal-${dateKey}`;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      const dayData = saved ? JSON.parse(saved) : {};
+      dayData.stickers = stickers;
+      dayData.daySummary = summary;
+      localStorage.setItem(storageKey, JSON.stringify(dayData));
+      setDayViewRevision(r => r + 1);
+    } catch {
+      // ignore
+    }
+  }, [selectedDate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-violet-950 to-gray-950">
@@ -73,7 +89,7 @@ export default function LuminaJournal() {
               : 'translate-x-0 opacity-100'
           }`}
         >
-          <DayView selectedDate={selectedDate} />
+          <DayView key={dayViewRevision} selectedDate={selectedDate} />
         </main>
 
         {/* Finish the Day */}
@@ -85,6 +101,7 @@ export default function LuminaJournal() {
           open={showFinishDay}
           onOpenChange={setShowFinishDay}
           selectedDate={selectedDate}
+          onFinish={handleFinishDay}
         />
       </div>
     </div>

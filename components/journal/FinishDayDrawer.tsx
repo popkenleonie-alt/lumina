@@ -10,29 +10,28 @@ import {
   DrawerDescription,
 } from '@/components/ui/drawer';
 import { formatDateKey } from '@/lib/dateHelpers';
-import { STICKER_MAP } from '@/lib/stickers';
 import type { DayData, CustomSectionDefinition } from '@/hooks/useJournalStore';
 
 interface FinishDayDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedDate: Date;
+  onFinish: (summary: string, stickers: string[]) => void;
 }
 
 export function FinishDayDrawer({
   open,
   onOpenChange,
   selectedDate,
+  onFinish,
 }: FinishDayDrawerProps) {
   const [summary, setSummary] = useState<string | null>(null);
-  const [stickers, setStickers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       setSummary(null);
-      setStickers([]);
       setError(null);
       return;
     }
@@ -72,7 +71,7 @@ export function FinishDayDrawer({
         if (!res.ok) throw new Error('Failed to generate summary');
         const json = await res.json();
         setSummary(json.summary);
-        setStickers(json.stickers ?? []);
+        onFinish(json.summary, json.stickers ?? []);
       })
       .catch(() => {
         setError('Could not generate your day summary. Please try again.');
@@ -80,7 +79,7 @@ export function FinishDayDrawer({
       .finally(() => {
         setLoading(false);
       });
-  }, [open, selectedDate]);
+  }, [open, selectedDate, onFinish]);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -119,40 +118,10 @@ export function FinishDayDrawer({
           )}
 
           {summary && !loading && (
-            <div className="space-y-4">
-              {/* Stickers */}
-              {stickers.length > 0 && (
-                <div className="flex items-center justify-center gap-3 py-2">
-                  {stickers.map((id, i) => {
-                    const sticker = STICKER_MAP[id];
-                    if (!sticker) return null;
-                    return (
-                      <div
-                        key={id}
-                        className="flex flex-col items-center gap-1 animate-[pop-in_0.4s_ease-out_both]"
-                        style={{ animationDelay: `${i * 0.15}s` }}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={sticker.url}
-                          alt={sticker.label}
-                          className="w-14 h-14 drop-shadow-lg"
-                        />
-                        <span className="text-[10px] text-violet-400">
-                          {sticker.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Summary */}
-              <div className="rounded-xl bg-violet-950/30 border border-violet-500/20 p-4">
-                <p className="text-violet-100 text-sm leading-relaxed whitespace-pre-wrap">
-                  {summary}
-                </p>
-              </div>
+            <div className="rounded-xl bg-violet-950/30 border border-violet-500/20 p-4">
+              <p className="text-violet-100 text-sm leading-relaxed whitespace-pre-wrap">
+                {summary}
+              </p>
             </div>
           )}
         </div>

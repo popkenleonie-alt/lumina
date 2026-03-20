@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain } from 'lucide-react';
+import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain, Award } from 'lucide-react';
 import { formatDisplayDate, isTodayCheck } from '@/lib/dateHelpers';
 import { useJournalStore, type CustomSectionDefinition } from '@/hooks/useJournalStore';
 import { SectionCard } from './SectionCard';
@@ -12,6 +12,7 @@ import { DoneList } from './sections/DoneList';
 import { CycleTracker } from './sections/CycleTracker';
 import { FoodJournal } from './sections/FoodJournal';
 import { Beliefs } from './sections/Beliefs';
+import { Stickers } from './sections/Stickers';
 import { CustomSection } from './sections/CustomSection';
 import { Input } from '@/components/ui/input';
 import {
@@ -176,6 +177,18 @@ export function DayView({ selectedDate }: DayViewProps) {
             />
           </SectionCard>
         </div>
+
+        {/* Stickers & Day Summary */}
+        {((data.stickers ?? []).length > 0 || data.daySummary) && (
+          <div className="rounded-2xl md:col-span-2">
+            <SectionCard title="Day Reflection" icon={<Award className="w-5 h-5" />} accentColor="amber">
+              <Stickers
+                stickerIds={data.stickers ?? []}
+                daySummary={data.daySummary ?? ''}
+              />
+            </SectionCard>
+          </div>
+        )}
 
         {/* Custom Sections */}
         {customSectionDefinitions
