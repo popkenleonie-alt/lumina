@@ -24,7 +24,11 @@ export async function POST(req: Request) {
     dateKey: string;
   } = await req.json();
 
-  const journalContext = buildJournalContext(dayData, customSectionDefinitions);
+  if (!dayData) {
+    return Response.json({ summary: 'No journal data for today.', stickers: [] });
+  }
+
+  const journalContext = buildJournalContext(dayData, customSectionDefinitions ?? []);
 
   const { object } = await generateObject({
     model: anthropic('claude-haiku-4-5-20251001'),

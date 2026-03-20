@@ -38,40 +38,32 @@ export function FinishDayDrawer({
 
     const dateKey = formatDateKey(selectedDate);
 
-    let dayData: DayData;
-    try {
-      const saved = localStorage.getItem(`lumina-journal-${dateKey}`);
-      dayData = saved ? JSON.parse(saved) : null;
-    } catch {
-      dayData = null as unknown as DayData;
-    }
-
-    let customSectionDefinitions: CustomSectionDefinition[] = [];
-    try {
-      const saved = localStorage.getItem('lumina-journal-custom-sections');
-      if (saved) customSectionDefinitions = JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-
-    if (!dayData) {
-      setSummary(
-        "It looks like your journal is empty today. That's okay — sometimes the best thing you can do is simply show up. Tomorrow is a fresh page.",
-      );
-      return;
-    }
-
     setLoading(true);
-    fetch('/api/finish-day', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dayData, customSectionDefinitions, dateKey }),
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error('Failed to generate summary');
-        const json = await res.json();
-        setSummary(json.summary);
-        onFinish(json.summary, json.stickers ?? []);
+
+    Promise.all([
+      fetch(`/api/journal?dateKey=${dateKey}`).then(r => r.ok ? r.json() : null),
+      fetch('/api/journal/custom-sections').then(r => r.ok ? r.json() : []),
+    ])
+      .then(([dayData, customSectionDefinitions]) => {
+        if (!dayData) {
+          setSummary(
+            "It looks like your journal is empty today. That's okay — sometimes the best thing you can do is simply show up. Tomorrow is a fresh page.",
+          );
+          setLoading(false);
+          return;
+        }
+
+        return fetch('/api/finish-day', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dayData, customSectionDefinitions: customSectionDefinitions ?? [], dateKey }),
+        })
+          .then(async (res) => {
+            if (!res.ok) throw new Error('Failed to generate summary');
+            const json = await res.json();
+            setSummary(json.summary);
+            onFinish(json.summary, json.stickers ?? []);
+          });
       })
       .catch(() => {
         setError('Could not generate your day summary. Please try again.');
