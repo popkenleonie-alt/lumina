@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import type {
   DayData,
   ChecklistItem,
-  MealEntry,
+  FoodEntry,
   CycleData,
   CustomSectionData,
   CustomSectionDefinition,
@@ -18,10 +18,9 @@ import type {
 interface AIAssistantProps {
   journalData: DayData;
   customSectionDefinitions: CustomSectionDefinition[];
-  onUpdateFoodJournal: (meal: keyof DayData['foodJournal'], entry: Partial<MealEntry>) => void;
+  onUpdateFoodJournal: (entries: FoodEntry[]) => void;
   onUpdateDoneList: (items: ChecklistItem[]) => void;
   onUpdateDreamJournal: (text: string) => void;
-  onToggleBadge: (badge: string) => void;
   onUpdateMood: (data: Partial<CycleData>) => void;
   onUpdateCustomSectionData: (sectionId: string, data: CustomSectionData) => void;
   onSectionHighlight?: (sectionId: string) => void;
@@ -43,7 +42,7 @@ interface ToolCallPill {
 const TOOL_PILL_MAP: Record<string, { icon: string; label: (args: Record<string, unknown>) => string }> = {
   update_food_journal: {
     icon: '🍽️',
-    label: (args) => `Updated ${args.meal} food`,
+    label: (args) => `Logged ${args.what || 'food'}`,
   },
   add_done_items: {
     icon: '✅',
@@ -52,10 +51,6 @@ const TOOL_PILL_MAP: Record<string, { icon: string; label: (args: Record<string,
   update_dream_journal: {
     icon: '🌙',
     label: () => 'Updated dream journal',
-  },
-  toggle_badges: {
-    icon: '🏆',
-    label: (args) => `Toggled ${(args.badges as string[]).join(' ')}`,
   },
   update_mood: {
     icon: '🌸',
@@ -73,7 +68,6 @@ export function AIAssistant({
   onUpdateFoodJournal,
   onUpdateDoneList,
   onUpdateDreamJournal,
-  onToggleBadge,
   onUpdateMood,
   onUpdateCustomSectionData,
   onSectionHighlight,
@@ -96,10 +90,7 @@ Dream Journal: ${journalData.dreamJournal || '(empty)'}
 Done List: ${journalData.doneList.map((i) => `${i.checked ? '✓' : '○'} ${i.text}`).join(', ') || '(empty)'}
 Badges earned: ${journalData.badges.join(', ') || '(none)'}
 Mood: ${journalData.cycleTracker.mood || 'Not set'}
-Food - Morning: ${journalData.foodJournal.morning.text || '(empty)'}
-Food - Noon: ${journalData.foodJournal.noon.text || '(empty)'}
-Food - Evening: ${journalData.foodJournal.evening.text || '(empty)'}
-Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
+Food entries: ${(journalData.foodEntries ?? []).length > 0 ? journalData.foodEntries.map((e) => `${new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${e.what}${e.why ? ` (why: ${e.why})` : ''}`).join('; ') : '(none)'}
 `;
 
   const customSectionsForApi = customSectionDefinitions.map((s) => ({
@@ -123,11 +114,16 @@ Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
       // Execute tool
       switch (toolName) {
         case 'update_food_journal': {
-          const meal = input.meal as keyof DayData['foodJournal'];
-          const text = input.text as string;
-          const existing = data.foodJournal[meal].text;
-          const merged = existing ? `${existing}, ${text}` : text;
-          onUpdateFoodJournal(meal, { text: merged });
+          const newEntry: FoodEntry = {
+            id: `ai-food-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            what: (input.what as string) || '',
+            why: (input.why as string) || '',
+            feelingBefore: (input.feelingBefore as string) || '',
+            feelingAfter: (input.feelingAfter as string) || '',
+            photos: [],
+          };
+          onUpdateFoodJournal([...(data.foodEntries ?? []), newEntry]);
           onSectionHighlight?.('food-journal');
           break;
         }
@@ -147,16 +143,6 @@ Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
           const existing = data.dreamJournal;
           onUpdateDreamJournal(existing ? `${existing}\n\n${text}` : text);
           onSectionHighlight?.('dream-journal');
-          break;
-        }
-        case 'toggle_badges': {
-          const badges = input.badges as string[];
-          for (const badge of badges) {
-            if (!data.badges.includes(badge)) {
-              onToggleBadge(badge);
-            }
-          }
-          onSectionHighlight?.('badges');
           break;
         }
         case 'update_mood': {

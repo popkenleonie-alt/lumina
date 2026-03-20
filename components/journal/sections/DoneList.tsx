@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Plus, Check, X } from 'lucide-react';
 import type { ChecklistItem } from '@/hooks/useJournalStore';
 
 interface DoneListProps {
@@ -18,17 +17,9 @@ export function DoneList({ items, onChange, readOnly }: DoneListProps) {
     if (!newItem.trim()) return;
     onChange([
       ...items,
-      { id: `item-${Date.now()}`, text: newItem.trim(), checked: false },
+      { id: `item-${Date.now()}`, text: newItem.trim(), checked: true },
     ]);
     setNewItem('');
-  };
-
-  const toggleItem = (id: string) => {
-    onChange(
-      items.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
   };
 
   const removeItem = (id: string) => {
@@ -42,28 +33,10 @@ export function DoneList({ items, onChange, readOnly }: DoneListProps) {
           key={item.id}
           className="flex items-center gap-3 p-2 rounded-lg bg-white/5 group"
         >
-          <button
-            onClick={() => !readOnly && toggleItem(item.id)}
-            disabled={readOnly}
-            className={cn(
-              'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors',
-              item.checked
-                ? 'bg-emerald-400 border-emerald-400'
-                : 'border-emerald-300 hover:border-emerald-400'
-            )}
-          >
-            {item.checked && (
-              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </button>
-          <span
-            className={cn(
-              'flex-1 text-sm text-violet-100 transition-all',
-              item.checked && 'line-through !text-violet-400/50'
-            )}
-          >
+          <div className="w-5 h-5 rounded-md bg-emerald-400 flex items-center justify-center shrink-0">
+            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+          </div>
+          <span className="flex-1 text-sm text-violet-100">
             {item.text}
           </span>
           {!readOnly && (
@@ -83,7 +56,7 @@ export function DoneList({ items, onChange, readOnly }: DoneListProps) {
             value={newItem}
             onChange={(e) => setNewItem(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addItem()}
-            placeholder="Add new item..."
+            placeholder="Add something you did..."
             className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-violet-500/20 text-sm text-violet-100 placeholder:text-violet-400/40 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
           />
           <button

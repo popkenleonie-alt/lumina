@@ -4,13 +4,15 @@ import { useState, useCallback } from 'react';
 import { WeekStrip } from '@/components/journal/WeekStrip';
 import { DayView } from '@/components/journal/DayView';
 import { FloatingButton } from '@/components/journal/FloatingButton';
-import { getNextDay, getPreviousDay } from '@/lib/dateHelpers';
+import { FinishDayDrawer } from '@/components/journal/FinishDayDrawer';
+import { getNextDay, getPreviousDay, isTodayCheck } from '@/lib/dateHelpers';
 
 export default function LuminaJournal() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
+  const [showFinishDay, setShowFinishDay] = useState(false);
 
   const minSwipeDistance = 50;
 
@@ -45,10 +47,6 @@ export default function LuminaJournal() {
     }
   }, [touchStart, touchEnd]);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-violet-950 to-gray-950">
       <div className="mx-auto max-w-[430px] md:max-w-none min-h-screen bg-gradient-to-b from-violet-950/50 to-gray-950/50">
@@ -78,8 +76,16 @@ export default function LuminaJournal() {
           <DayView selectedDate={selectedDate} />
         </main>
 
-        {/* Floating Action Button */}
-        <FloatingButton onClick={scrollToTop} />
+        {/* Finish the Day */}
+        <FloatingButton
+          onClick={() => setShowFinishDay(true)}
+          visible={isTodayCheck(selectedDate)}
+        />
+        <FinishDayDrawer
+          open={showFinishDay}
+          onOpenChange={setShowFinishDay}
+          selectedDate={selectedDate}
+        />
       </div>
     </div>
   );

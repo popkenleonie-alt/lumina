@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Award, Heart, UtensilsCrossed } from 'lucide-react';
+import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain } from 'lucide-react';
 import { formatDisplayDate, isTodayCheck } from '@/lib/dateHelpers';
 import { useJournalStore, type CustomSectionDefinition } from '@/hooks/useJournalStore';
 import { SectionCard } from './SectionCard';
@@ -9,9 +9,9 @@ import { AddSectionModal } from './AddSectionModal';
 import { AIAssistant } from './sections/AIAssistant';
 import { DreamJournal } from './sections/DreamJournal';
 import { DoneList } from './sections/DoneList';
-import { Badges } from './sections/Badges';
 import { CycleTracker } from './sections/CycleTracker';
 import { FoodJournal } from './sections/FoodJournal';
+import { Beliefs } from './sections/Beliefs';
 import { CustomSection } from './sections/CustomSection';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,9 +37,10 @@ export function DayView({ selectedDate }: DayViewProps) {
     isLoaded,
     updateDreamJournal,
     updateDoneList,
-    toggleBadge,
     updateCycleTracker,
     updateFoodJournal,
+    updateFoodEntries,
+    updateBeliefs,
     addCustomSection,
     updateCustomSection,
     deleteCustomSection,
@@ -108,10 +109,9 @@ export function DayView({ selectedDate }: DayViewProps) {
             <AIAssistant
               journalData={data}
               customSectionDefinitions={customSectionDefinitions}
-              onUpdateFoodJournal={updateFoodJournal}
+              onUpdateFoodJournal={updateFoodEntries}
               onUpdateDoneList={updateDoneList}
               onUpdateDreamJournal={updateDreamJournal}
-              onToggleBadge={toggleBadge}
               onUpdateMood={updateCycleTracker}
               onUpdateCustomSectionData={updateCustomSectionData}
               onSectionHighlight={handleSectionHighlight}
@@ -144,17 +144,6 @@ export function DayView({ selectedDate }: DayViewProps) {
           </SectionCard>
         </div>
 
-        {/* Badges */}
-        <div className={cn('rounded-2xl h-full', highlightedSections.has('badges') && highlightRing)}>
-          <SectionCard title="Badges" icon={<Award className="w-5 h-5" />} accentColor="pink">
-            <Badges
-              selectedBadges={data.badges}
-              onToggle={toggleBadge}
-              readOnly={readOnly}
-            />
-          </SectionCard>
-        </div>
-
         {/* Cycle Tracker */}
         <div className={cn('rounded-2xl h-full', highlightedSections.has('cycle-tracker') && highlightRing)}>
           <SectionCard title="Cycle Tracker" icon={<Heart className="w-5 h-5" />} accentColor="rose">
@@ -166,12 +155,23 @@ export function DayView({ selectedDate }: DayViewProps) {
           </SectionCard>
         </div>
 
-        {/* Food Journal — spans full width on desktop since it has 4 meal slots */}
+        {/* Food Journal — spans full width on desktop */}
         <div className={cn('rounded-2xl md:col-span-2', highlightedSections.has('food-journal') && highlightRing)}>
           <SectionCard title="Food Journal" icon={<UtensilsCrossed className="w-5 h-5" />} accentColor="amber">
             <FoodJournal
-              data={data.foodJournal}
-              onChange={updateFoodJournal}
+              entries={data.foodEntries ?? []}
+              onChange={updateFoodEntries}
+              readOnly={readOnly}
+            />
+          </SectionCard>
+        </div>
+
+        {/* Beliefs */}
+        <div className={cn('rounded-2xl md:col-span-2', highlightedSections.has('beliefs') && highlightRing)}>
+          <SectionCard title="Beliefs" icon={<Brain className="w-5 h-5" />} accentColor="teal">
+            <Beliefs
+              entries={data.beliefs ?? []}
+              onChange={updateBeliefs}
               readOnly={readOnly}
             />
           </SectionCard>

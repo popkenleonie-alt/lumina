@@ -14,6 +14,16 @@ export interface MealEntry {
   photos: string[];
 }
 
+export interface FoodEntry {
+  id: string;
+  timestamp: string;
+  what: string;
+  why: string;
+  feelingBefore: string;
+  feelingAfter: string;
+  photos: string[];
+}
+
 export interface CycleData {
   phase: string | null;
   mood: string | null;
@@ -24,6 +34,13 @@ export interface CustomSectionData {
   checklist?: ChecklistItem[];
   photos?: string[];
   rating?: number;
+}
+
+export interface BeliefEntry {
+  id: string;
+  belief: string;
+  challenge: string;
+  reframe: string;
 }
 
 export interface DayData {
@@ -37,6 +54,8 @@ export interface DayData {
     evening: MealEntry;
     snacks: MealEntry;
   };
+  foodEntries: FoodEntry[];
+  beliefs: BeliefEntry[];
   customSections: Record<string, CustomSectionData>;
 }
 
@@ -60,6 +79,8 @@ const defaultDayData: DayData = {
     evening: { text: '', photos: [] },
     snacks: { text: '', photos: [] },
   },
+  beliefs: [],
+  foodEntries: [],
   customSections: {},
 };
 
@@ -173,6 +194,14 @@ export function useJournalStore(selectedDate: Date) {
     });
   }, []);
 
+  const updateFoodEntries = useCallback((foodEntries: FoodEntry[]) => {
+    setData(prev => ({ ...prev, foodEntries }));
+  }, []);
+
+  const updateBeliefs = useCallback((beliefs: BeliefEntry[]) => {
+    setData(prev => ({ ...prev, beliefs }));
+  }, []);
+
   const updateCustomSectionData = useCallback((sectionId: string, sectionData: CustomSectionData) => {
     setData(prev => ({
       ...prev,
@@ -192,6 +221,8 @@ export function useJournalStore(selectedDate: Date) {
     toggleBadge,
     updateCycleTracker,
     updateFoodJournal,
+    updateFoodEntries,
+    updateBeliefs,
     addCustomSection,
     updateCustomSection,
     deleteCustomSection,

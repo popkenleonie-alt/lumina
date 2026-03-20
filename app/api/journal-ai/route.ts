@@ -42,8 +42,8 @@ ${customSectionsPrompt}
 You have tools to directly update the user's journal. Use them proactively when the user shares information that belongs in a journal section. You can call multiple tools in one response.
 
 **When to use tools:**
-- User mentions food/drinks → use update_food_journal (infer meal from current time: before 11am = morning, 11am-3pm = noon, 3pm-9pm = evening, or snacks for snack items anytime)
-- User mentions accomplishments/activities → use add_done_items AND toggle relevant badges
+- User mentions food/drinks → use update_food_journal (set what they ate; if they mention why, feelings before/after, include those too)
+- User mentions accomplishments/activities → use add_done_items
 - User describes a dream → use update_dream_journal
 - User expresses feelings → use update_mood
 - User shares content matching a custom section → use update_custom_section
