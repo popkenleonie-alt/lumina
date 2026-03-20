@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import { WeekStrip } from '@/components/journal/WeekStrip';
-import { HeroArea } from '@/components/journal/HeroArea';
 import { DayView } from '@/components/journal/DayView';
 import { FloatingButton } from '@/components/journal/FloatingButton';
 import { getNextDay, getPreviousDay } from '@/lib/dateHelpers';
@@ -62,9 +61,6 @@ export default function LuminaJournal() {
           </div>
           <WeekStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
         </header>
-
-        {/* Hero Area */}
-        <HeroArea />
 
         {/* Day Content */}
         <main
