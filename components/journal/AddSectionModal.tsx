@@ -62,7 +62,7 @@ export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps
     <>
       <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" onClick={onClose} />
       <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
-        <div className="w-full max-w-[430px] bg-white/95 backdrop-blur-md rounded-t-3xl shadow-2xl p-6 animate-in slide-in-from-bottom duration-300">
+        <div className="w-full max-w-[430px] md:max-w-lg bg-white/95 backdrop-blur-md rounded-t-3xl shadow-2xl p-6 animate-in slide-in-from-bottom duration-300">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-serif text-xl font-semibold text-foreground">Add Custom Section</h2>
             <button

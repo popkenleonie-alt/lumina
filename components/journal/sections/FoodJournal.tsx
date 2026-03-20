@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { Camera, X } from 'lucide-react';
+import { Camera, X, Sunrise, Sun, Sunset, Cookie, type LucideIcon } from 'lucide-react';
 import type { MealEntry, DayData } from '@/hooks/useJournalStore';
 
 interface FoodJournalProps {
@@ -10,11 +10,11 @@ interface FoodJournalProps {
   readOnly?: boolean;
 }
 
-const meals: { key: keyof DayData['foodJournal']; label: string; icon: string }[] = [
-  { key: 'morning', label: 'Morning', icon: '🌅' },
-  { key: 'noon', label: 'Noon', icon: '☀️' },
-  { key: 'evening', label: 'Evening', icon: '🌙' },
-  { key: 'snacks', label: 'Snacks', icon: '🍿' },
+const meals: { key: keyof DayData['foodJournal']; label: string; icon: LucideIcon }[] = [
+  { key: 'morning', label: 'Morning', icon: Sunrise },
+  { key: 'noon', label: 'Noon', icon: Sun },
+  { key: 'evening', label: 'Evening', icon: Sunset },
+  { key: 'snacks', label: 'Snacks', icon: Cookie },
 ];
 
 export function FoodJournal({ data, onChange, readOnly }: FoodJournalProps) {
@@ -36,13 +36,13 @@ export function FoodJournal({ data, onChange, readOnly }: FoodJournalProps) {
 
 interface MealInputProps {
   label: string;
-  icon: string;
+  icon: LucideIcon;
   value: MealEntry;
   onChange: (entry: Partial<MealEntry>) => void;
   readOnly?: boolean;
 }
 
-function MealInput({ label, icon, value, onChange, readOnly }: MealInputProps) {
+function MealInput({ label, icon: Icon, value, onChange, readOnly }: MealInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +66,7 @@ function MealInput({ label, icon, value, onChange, readOnly }: MealInputProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <span className="text-sm">{icon}</span>
+        <Icon className="w-4 h-4 text-muted-foreground" />
         <span className="text-xs font-medium text-muted-foreground">{label}</span>
       </div>
       <div className="flex gap-2">

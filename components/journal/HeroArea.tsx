@@ -2,7 +2,7 @@
 
 export function HeroArea() {
   return (
-    <div className="relative h-36 overflow-hidden">
+    <div className="relative h-28 md:h-36 overflow-hidden">
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-pink-100/50 to-rose-100/30" />
       

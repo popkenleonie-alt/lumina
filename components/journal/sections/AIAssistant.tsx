@@ -6,12 +6,25 @@ import { DefaultChatTransport } from 'ai';
 import { Send, Sparkles, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { DayData } from '@/hooks/useJournalStore';
+import type {
+  DayData,
+  ChecklistItem,
+  MealEntry,
+  CycleData,
+  CustomSectionData,
+  CustomSectionDefinition,
+} from '@/hooks/useJournalStore';
 
 interface AIAssistantProps {
   journalData: DayData;
-  onInsertToDream?: (text: string) => void;
-  onInsertToDone?: (text: string) => void;
+  customSectionDefinitions: CustomSectionDefinition[];
+  onUpdateFoodJournal: (meal: keyof DayData['foodJournal'], entry: Partial<MealEntry>) => void;
+  onUpdateDoneList: (items: ChecklistItem[]) => void;
+  onUpdateDreamJournal: (text: string) => void;
+  onToggleBadge: (badge: string) => void;
+  onUpdateMood: (data: Partial<CycleData>) => void;
+  onUpdateCustomSectionData: (sectionId: string, data: CustomSectionData) => void;
+  onSectionHighlight?: (sectionId: string) => void;
 }
 
 function getMessageText(parts: Array<{ type: string; text?: string }>): string {
@@ -21,11 +34,61 @@ function getMessageText(parts: Array<{ type: string; text?: string }>): string {
     .join('');
 }
 
-export function AIAssistant({ journalData, onInsertToDream, onInsertToDone }: AIAssistantProps) {
+interface ToolCallPill {
+  id: string;
+  icon: string;
+  label: string;
+}
+
+const TOOL_PILL_MAP: Record<string, { icon: string; label: (args: Record<string, unknown>) => string }> = {
+  update_food_journal: {
+    icon: '🍽️',
+    label: (args) => `Updated ${args.meal} food`,
+  },
+  add_done_items: {
+    icon: '✅',
+    label: (args) => `Added ${(args.items as string[]).length} item${(args.items as string[]).length > 1 ? 's' : ''}`,
+  },
+  update_dream_journal: {
+    icon: '🌙',
+    label: () => 'Updated dream journal',
+  },
+  toggle_badges: {
+    icon: '🏆',
+    label: (args) => `Toggled ${(args.badges as string[]).join(' ')}`,
+  },
+  update_mood: {
+    icon: '🌸',
+    label: (args) => `Set mood to ${args.mood}`,
+  },
+  update_custom_section: {
+    icon: '📝',
+    label: (args) => `Updated "${args.sectionName}"`,
+  },
+};
+
+export function AIAssistant({
+  journalData,
+  customSectionDefinitions,
+  onUpdateFoodJournal,
+  onUpdateDoneList,
+  onUpdateDreamJournal,
+  onToggleBadge,
+  onUpdateMood,
+  onUpdateCustomSectionData,
+  onSectionHighlight,
+}: AIAssistantProps) {
   const [input, setInput] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [toolCallPills, setToolCallPills] = useState<Record<string, ToolCallPill[]>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Use refs to always have latest data in the onToolCall callback
+  const journalDataRef = useRef(journalData);
+  journalDataRef.current = journalData;
+  const customSectionDefsRef = useRef(customSectionDefinitions);
+  customSectionDefsRef.current = customSectionDefinitions;
 
   // Build context from journal data
   const context = `
@@ -33,16 +96,140 @@ Dream Journal: ${journalData.dreamJournal || '(empty)'}
 Done List: ${journalData.doneList.map((i) => `${i.checked ? '✓' : '○'} ${i.text}`).join(', ') || '(empty)'}
 Badges earned: ${journalData.badges.join(', ') || '(none)'}
 Mood: ${journalData.cycleTracker.mood || 'Not set'}
+Food - Morning: ${journalData.foodJournal.morning.text || '(empty)'}
+Food - Noon: ${journalData.foodJournal.noon.text || '(empty)'}
+Food - Evening: ${journalData.foodJournal.evening.text || '(empty)'}
+Food - Snacks: ${journalData.foodJournal.snacks.text || '(empty)'}
 `;
+
+  const customSectionsForApi = customSectionDefinitions.map((s) => ({
+    name: s.name,
+    type: s.type,
+  }));
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/journal-ai',
-      body: { context },
+      body: {
+        context,
+        customSections: customSectionsForApi,
+        currentTime: new Date().toLocaleTimeString(),
+      },
     }),
+    onToolCall: ({ toolCall }) => {
+      const { toolName, input, toolCallId } = toolCall as { toolName: string; input: Record<string, unknown>; toolCallId: string };
+      const data = journalDataRef.current;
+
+      // Execute tool
+      switch (toolName) {
+        case 'update_food_journal': {
+          const meal = input.meal as keyof DayData['foodJournal'];
+          const text = input.text as string;
+          const existing = data.foodJournal[meal].text;
+          const merged = existing ? `${existing}, ${text}` : text;
+          onUpdateFoodJournal(meal, { text: merged });
+          onSectionHighlight?.('food-journal');
+          break;
+        }
+        case 'add_done_items': {
+          const items = input.items as string[];
+          const newItems: ChecklistItem[] = items.map((text, i) => ({
+            id: `ai-${Date.now()}-${i}`,
+            text,
+            checked: false,
+          }));
+          onUpdateDoneList([...data.doneList, ...newItems]);
+          onSectionHighlight?.('done-list');
+          break;
+        }
+        case 'update_dream_journal': {
+          const text = input.text as string;
+          const existing = data.dreamJournal;
+          onUpdateDreamJournal(existing ? `${existing}\n\n${text}` : text);
+          onSectionHighlight?.('dream-journal');
+          break;
+        }
+        case 'toggle_badges': {
+          const badges = input.badges as string[];
+          for (const badge of badges) {
+            if (!data.badges.includes(badge)) {
+              onToggleBadge(badge);
+            }
+          }
+          onSectionHighlight?.('badges');
+          break;
+        }
+        case 'update_mood': {
+          const mood = input.mood as string;
+          onUpdateMood({ mood });
+          onSectionHighlight?.('cycle-tracker');
+          break;
+        }
+        case 'update_custom_section': {
+          const sectionName = input.sectionName as string;
+          const def = customSectionDefsRef.current.find(
+            (s) => s.name.toLowerCase() === sectionName.toLowerCase()
+          );
+          if (def) {
+            const existingData = data.customSections[def.id] || {};
+            const updated: CustomSectionData = { ...existingData };
+
+            if (def.type === 'text' && input.text) {
+              const existing = existingData.text || '';
+              updated.text = existing ? `${existing}\n${input.text}` : (input.text as string);
+            } else if (def.type === 'checklist' && input.items) {
+              const existingItems = existingData.checklist || [];
+              const newItems = (input.items as string[]).map((text, i) => ({
+                id: `ai-custom-${Date.now()}-${i}`,
+                text,
+                checked: false,
+              }));
+              updated.checklist = [...existingItems, ...newItems];
+            } else if (def.type === 'rating' && input.rating != null) {
+              updated.rating = input.rating as number;
+            }
+
+            onUpdateCustomSectionData(def.id, updated);
+            onSectionHighlight?.(`custom-${def.id}`);
+          }
+          break;
+        }
+      }
+
+      // Track pill for this message
+      const pillInfo = TOOL_PILL_MAP[toolName];
+      if (pillInfo) {
+        const pill: ToolCallPill = {
+          id: toolCallId,
+          icon: pillInfo.icon,
+          label: pillInfo.label(input),
+        };
+        setToolCallPills((prev) => {
+          // Associate pills with the latest assistant message
+          const key = 'pending';
+          return { ...prev, [key]: [...(prev[key] || []), pill] };
+        });
+      }
+
+    },
   });
 
   const isLoading = status === 'streaming' || status === 'submitted';
+
+  // Move pending pills to their message once streaming completes
+  useEffect(() => {
+    if (status === 'ready' && toolCallPills['pending']?.length) {
+      const lastAssistantMsg = [...messages].reverse().find((m) => m.role === 'assistant');
+      if (lastAssistantMsg) {
+        setToolCallPills((prev) => {
+          const pending = prev['pending'] || [];
+          const existing = prev[lastAssistantMsg.id] || [];
+          const { pending: _, ...rest } = prev;
+          return { ...rest, [lastAssistantMsg.id]: [...existing, ...pending] };
+        });
+      }
+    }
+  }, [status, messages, toolCallPills]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -106,6 +293,7 @@ Mood: ${journalData.cycleTracker.mood || 'Not set'}
               {messages.map((message) => {
                 const text = getMessageText(message.parts || []);
                 const isAssistant = message.role === 'assistant';
+                const pills = toolCallPills[message.id] || [];
 
                 return (
                   <div
@@ -123,7 +311,22 @@ Mood: ${journalData.cycleTracker.mood || 'Not set'}
                         Lumina
                       </div>
                     )}
-                    <p className="whitespace-pre-wrap leading-relaxed">{text}</p>
+                    {text && <p className="whitespace-pre-wrap leading-relaxed">{text}</p>}
+
+                    {/* Tool call pills */}
+                    {pills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {pills.map((pill) => (
+                          <span
+                            key={pill.id}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100/80 text-purple-700 text-xs"
+                          >
+                            {pill.icon} {pill.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     {isAssistant && text && (
                       <div className="flex gap-1 mt-2 pt-2 border-t border-purple-100/50">
                         <Button
@@ -139,26 +342,6 @@ Mood: ${journalData.cycleTracker.mood || 'Not set'}
                           )}
                           Copy
                         </Button>
-                        {onInsertToDream && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-100/50"
-                            onClick={() => onInsertToDream(text)}
-                          >
-                            + Dream
-                          </Button>
-                        )}
-                        {onInsertToDone && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-100/50"
-                            onClick={() => onInsertToDone(text)}
-                          >
-                            + Done
-                          </Button>
-                        )}
                       </div>
                     )}
                   </div>
@@ -190,9 +373,18 @@ Mood: ${journalData.cycleTracker.mood || 'Not set'}
           {isLoading && (
             <div className="flex items-center gap-2 text-xs text-purple-400">
               <div className="flex gap-1">
-                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span
+                  className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '0ms' }}
+                />
+                <span
+                  className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '150ms' }}
+                />
+                <span
+                  className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"
+                  style={{ animationDelay: '300ms' }}
+                />
               </div>
               Lumina is thinking...
             </div>

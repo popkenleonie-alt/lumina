@@ -12,7 +12,7 @@ import {
 
 interface SectionCardProps {
   title: string;
-  icon?: string;
+  icon?: React.ReactNode;
   accentColor: string;
   children: React.ReactNode;
   defaultExpanded?: boolean;
@@ -49,7 +49,7 @@ export function SectionCard({
   return (
     <div
       className={cn(
-        'bg-white/70 backdrop-blur-md rounded-2xl border-l-4 shadow-sm overflow-hidden transition-all duration-300',
+        'h-full bg-white/70 backdrop-blur-md rounded-2xl border-l-4 shadow-sm overflow-hidden transition-all duration-300',
         accentColors[accentColor] || 'border-l-gray-400'
       )}
     >
@@ -58,7 +58,7 @@ export function SectionCard({
         className="w-full flex items-center justify-between px-4 py-3 text-left"
       >
         <div className="flex items-center gap-2">
-          {icon && <span className="text-xl">{icon}</span>}
+          {icon && <span className="flex items-center text-muted-foreground">{icon}</span>}
           <h3 className="font-serif font-semibold text-foreground">{title}</h3>
         </div>
         <div className="flex items-center gap-1">

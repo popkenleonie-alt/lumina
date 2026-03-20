@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, ArrowUp, ArrowDown, Lock } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Award, Heart, UtensilsCrossed } from 'lucide-react';
 import { formatDisplayDate, isTodayCheck } from '@/lib/dateHelpers';
 import { useJournalStore, type CustomSectionDefinition } from '@/hooks/useJournalStore';
 import { SectionCard } from './SectionCard';
@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface DayViewProps {
   selectedDate: Date;
@@ -49,6 +50,18 @@ export function DayView({ selectedDate }: DayViewProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSection, setEditingSection] = useState<CustomSectionDefinition | null>(null);
   const [newName, setNewName] = useState('');
+  const [highlightedSections, setHighlightedSections] = useState<Set<string>>(new Set());
+
+  const handleSectionHighlight = useCallback((sectionId: string) => {
+    setHighlightedSections((prev) => new Set(prev).add(sectionId));
+    setTimeout(() => {
+      setHighlightedSections((prev) => {
+        const next = new Set(prev);
+        next.delete(sectionId);
+        return next;
+      });
+    }, 1500);
+  }, []);
 
   const handleRename = (section: CustomSectionDefinition) => {
     setEditingSection(section);
@@ -71,8 +84,10 @@ export function DayView({ selectedDate }: DayViewProps) {
     );
   }
 
+  const highlightRing = 'ring-2 ring-purple-400 ring-offset-2 transition-all duration-300';
+
   return (
-    <div className="px-4 pb-24 space-y-4">
+    <div className="px-4 pb-24">
       {/* Date Header */}
       <div className="flex items-center justify-between py-2">
         <h2 className="font-serif text-lg font-semibold text-foreground">
@@ -86,133 +101,144 @@ export function DayView({ selectedDate }: DayViewProps) {
         )}
       </div>
 
-      {/* AI Assistant - only show for today */}
+      {/* AI Assistant - full width, only show for today */}
       {isToday && (
-        <SectionCard title="Lumina AI" icon="✨" accentColor="purple">
-          <AIAssistant
-            journalData={data}
-            onInsertToDream={(text) => {
-              const current = data.dreamJournal;
-              updateDreamJournal(current ? `${current}\n\n${text}` : text);
-            }}
-            onInsertToDone={(text) => {
-              // Parse text for list items and add them
-              const lines = text.split('\n').filter((l) => l.trim());
-              const newItems = lines.map((line, i) => ({
-                id: `ai-${Date.now()}-${i}`,
-                text: line.replace(/^[-•*\d.]+\s*/, '').trim(),
-                checked: false,
-              }));
-              updateDoneList([...data.doneList, ...newItems]);
-            }}
-          />
-        </SectionCard>
+        <div className="mb-4">
+          <SectionCard title="Lumina AI" icon={<Sparkles className="w-5 h-5" />} accentColor="purple">
+            <AIAssistant
+              journalData={data}
+              customSectionDefinitions={customSectionDefinitions}
+              onUpdateFoodJournal={updateFoodJournal}
+              onUpdateDoneList={updateDoneList}
+              onUpdateDreamJournal={updateDreamJournal}
+              onToggleBadge={toggleBadge}
+              onUpdateMood={updateCycleTracker}
+              onUpdateCustomSectionData={updateCustomSectionData}
+              onSectionHighlight={handleSectionHighlight}
+            />
+          </SectionCard>
+        </div>
       )}
 
-      {/* Dream Journal */}
-      <SectionCard title="Dream Journal" icon="🌙" accentColor="purple">
-        <DreamJournal
-          value={data.dreamJournal}
-          onChange={updateDreamJournal}
-          readOnly={readOnly}
-        />
-      </SectionCard>
+      {/* Journal sections — single column on mobile, two columns on md+ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Dream Journal */}
+        <div className={cn('rounded-2xl h-full', highlightedSections.has('dream-journal') && highlightRing)}>
+          <SectionCard title="Dream Journal" icon={<Moon className="w-5 h-5" />} accentColor="purple">
+            <DreamJournal
+              value={data.dreamJournal}
+              onChange={updateDreamJournal}
+              readOnly={readOnly}
+            />
+          </SectionCard>
+        </div>
 
-      {/* Done List */}
-      <SectionCard title="Done List" icon="✅" accentColor="green">
-        <DoneList
-          items={data.doneList}
-          onChange={updateDoneList}
-          readOnly={readOnly}
-        />
-      </SectionCard>
+        {/* Done List */}
+        <div className={cn('rounded-2xl h-full', highlightedSections.has('done-list') && highlightRing)}>
+          <SectionCard title="Done List" icon={<CheckCircle className="w-5 h-5" />} accentColor="green">
+            <DoneList
+              items={data.doneList}
+              onChange={updateDoneList}
+              readOnly={readOnly}
+            />
+          </SectionCard>
+        </div>
 
-      {/* Badges */}
-      <SectionCard title="Badges" icon="🏆" accentColor="pink">
-        <Badges
-          selectedBadges={data.badges}
-          onToggle={toggleBadge}
-          readOnly={readOnly}
-        />
-      </SectionCard>
+        {/* Badges */}
+        <div className={cn('rounded-2xl h-full', highlightedSections.has('badges') && highlightRing)}>
+          <SectionCard title="Badges" icon={<Award className="w-5 h-5" />} accentColor="pink">
+            <Badges
+              selectedBadges={data.badges}
+              onToggle={toggleBadge}
+              readOnly={readOnly}
+            />
+          </SectionCard>
+        </div>
 
-      {/* Cycle Tracker */}
-      <SectionCard title="Cycle Tracker" icon="🌸" accentColor="rose">
-        <CycleTracker
-          data={data.cycleTracker}
-          onChange={updateCycleTracker}
-          readOnly={readOnly}
-        />
-      </SectionCard>
+        {/* Cycle Tracker */}
+        <div className={cn('rounded-2xl h-full', highlightedSections.has('cycle-tracker') && highlightRing)}>
+          <SectionCard title="Cycle Tracker" icon={<Heart className="w-5 h-5" />} accentColor="rose">
+            <CycleTracker
+              data={data.cycleTracker}
+              onChange={updateCycleTracker}
+              readOnly={readOnly}
+            />
+          </SectionCard>
+        </div>
 
-      {/* Food Journal */}
-      <SectionCard title="Food Journal" icon="🍽️" accentColor="amber">
-        <FoodJournal
-          data={data.foodJournal}
-          onChange={updateFoodJournal}
-          readOnly={readOnly}
-        />
-      </SectionCard>
+        {/* Food Journal — spans full width on desktop since it has 4 meal slots */}
+        <div className={cn('rounded-2xl md:col-span-2', highlightedSections.has('food-journal') && highlightRing)}>
+          <SectionCard title="Food Journal" icon={<UtensilsCrossed className="w-5 h-5" />} accentColor="amber">
+            <FoodJournal
+              data={data.foodJournal}
+              onChange={updateFoodJournal}
+              readOnly={readOnly}
+            />
+          </SectionCard>
+        </div>
 
-      {/* Custom Sections */}
-      {customSectionDefinitions
-        .sort((a, b) => a.order - b.order)
-        .map((section, index) => (
-          <div key={section.id} className="relative group">
-            <SectionCard
-              title={section.name}
-              icon={section.icon}
-              accentColor={section.color}
-              showMenu={isToday}
-              onRename={() => handleRename(section)}
-              onChangeColor={() => {
-                const colors = ['purple', 'pink', 'rose', 'green', 'blue', 'teal', 'amber', 'orange'];
-                const currentIndex = colors.indexOf(section.color);
-                const nextColor = colors[(currentIndex + 1) % colors.length];
-                updateCustomSection(section.id, { color: nextColor });
-              }}
-              onDelete={() => deleteCustomSection(section.id)}
-            >
-              <CustomSection
-                definition={section}
-                data={data.customSections[section.id] || {}}
-                onChange={(sectionData) => updateCustomSectionData(section.id, sectionData)}
-                readOnly={readOnly}
-              />
-            </SectionCard>
-            {isToday && customSectionDefinitions.length > 1 && (
-              <div className="absolute -right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {index > 0 && (
-                  <button
-                    onClick={() => reorderCustomSections(index, index - 1)}
-                    className="p-1 rounded bg-white/80 shadow-sm hover:bg-white"
-                  >
-                    <ArrowUp className="w-3 h-3" />
-                  </button>
-                )}
-                {index < customSectionDefinitions.length - 1 && (
-                  <button
-                    onClick={() => reorderCustomSections(index, index + 1)}
-                    className="p-1 rounded bg-white/80 shadow-sm hover:bg-white"
-                  >
-                    <ArrowDown className="w-3 h-3" />
-                  </button>
-                )}
+        {/* Custom Sections */}
+        {customSectionDefinitions
+          .sort((a, b) => a.order - b.order)
+          .map((section, index) => (
+            <div key={section.id} className="relative group">
+              <div className={cn('rounded-2xl h-full', highlightedSections.has(`custom-${section.id}`) && highlightRing)}>
+                <SectionCard
+                  title={section.name}
+                  icon={section.icon}
+                  accentColor={section.color}
+                  showMenu={isToday}
+                  onRename={() => handleRename(section)}
+                  onChangeColor={() => {
+                    const colors = ['purple', 'pink', 'rose', 'green', 'blue', 'teal', 'amber', 'orange'];
+                    const currentIndex = colors.indexOf(section.color);
+                    const nextColor = colors[(currentIndex + 1) % colors.length];
+                    updateCustomSection(section.id, { color: nextColor });
+                  }}
+                  onDelete={() => deleteCustomSection(section.id)}
+                >
+                  <CustomSection
+                    definition={section}
+                    data={data.customSections[section.id] || {}}
+                    onChange={(sectionData) => updateCustomSectionData(section.id, sectionData)}
+                    readOnly={readOnly}
+                  />
+                </SectionCard>
               </div>
-            )}
-          </div>
-        ))}
+              {isToday && customSectionDefinitions.length > 1 && (
+                <div className="absolute -right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {index > 0 && (
+                    <button
+                      onClick={() => reorderCustomSections(index, index - 1)}
+                      className="p-1 rounded bg-white/80 shadow-sm hover:bg-white"
+                    >
+                      <ArrowUp className="w-3 h-3" />
+                    </button>
+                  )}
+                  {index < customSectionDefinitions.length - 1 && (
+                    <button
+                      onClick={() => reorderCustomSections(index, index + 1)}
+                      className="p-1 rounded bg-white/80 shadow-sm hover:bg-white"
+                    >
+                      <ArrowDown className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
 
-      {/* Add Section Button */}
-      {isToday && (
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="w-full py-3 rounded-2xl border-2 border-dashed border-pink-300 text-pink-500 flex items-center justify-center gap-2 hover:bg-pink-50/50 transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="font-medium">Add Section</span>
-        </button>
-      )}
+        {/* Add Section Button */}
+        {isToday && (
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="w-full py-3 rounded-2xl border-2 border-dashed border-pink-300 text-pink-500 flex items-center justify-center gap-2 hover:bg-pink-50/50 transition-colors md:col-span-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="font-medium">Add Section</span>
+          </button>
+        )}
+      </div>
 
       {/* Add Section Modal */}
       <AddSectionModal

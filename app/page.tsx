@@ -52,7 +52,7 @@ export default function LuminaJournal() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-200 via-pink-100 to-violet-200">
-      <div className="mx-auto max-w-[430px] min-h-screen bg-gradient-to-b from-white/30 to-white/50 shadow-2xl shadow-pink-300/20">
+      <div className="mx-auto max-w-[430px] md:max-w-none min-h-screen bg-gradient-to-b from-white/30 to-white/50 shadow-2xl shadow-pink-300/20">
         {/* Header */}
         <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-white/50">
           <div className="px-4 pt-4 pb-2">
