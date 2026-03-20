@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { formatDateKey } from '@/lib/dateHelpers';
 
 export interface ChecklistItem {
@@ -93,48 +93,81 @@ export function useJournalStore(selectedDate: Date) {
   const [data, setData] = useState<DayData>(defaultDayData);
   const [customSectionDefinitions, setCustomSectionDefinitions] = useState<CustomSectionDefinition[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  
+
   const dateKey = formatDateKey(selectedDate);
 
-  // Load data from localStorage
+  // Refs for debounced saving
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const sectionsSaveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const dataRef = useRef(data);
+  dataRef.current = data;
+  const sectionsRef = useRef(customSectionDefinitions);
+  sectionsRef.current = customSectionDefinitions;
+  const dateKeyRef = useRef(dateKey);
+  dateKeyRef.current = dateKey;
+
+  // Load day data from API
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    // Load day data
-    const savedData = localStorage.getItem(`lumina-journal-${dateKey}`);
-    if (savedData) {
+    setIsLoaded(false);
+    let cancelled = false;
+
+    async function load() {
       try {
-        setData(JSON.parse(savedData));
+        const [dayRes, sectionsRes] = await Promise.all([
+          fetch(`/api/journal?dateKey=${dateKey}`),
+          fetch('/api/journal/custom-sections'),
+        ]);
+
+        if (cancelled) return;
+
+        const dayData = await dayRes.json();
+        setData(dayData ?? defaultDayData);
+
+        const sections = await sectionsRes.json();
+        setCustomSectionDefinitions(Array.isArray(sections) ? sections : []);
       } catch {
-        setData(defaultDayData);
+        if (!cancelled) {
+          setData(defaultDayData);
+          setCustomSectionDefinitions([]);
+        }
       }
-    } else {
-      setData(defaultDayData);
+      if (!cancelled) setIsLoaded(true);
     }
-    
-    // Load custom section definitions
-    const savedDefinitions = localStorage.getItem('lumina-journal-custom-sections');
-    if (savedDefinitions) {
-      try {
-        setCustomSectionDefinitions(JSON.parse(savedDefinitions));
-      } catch {
-        setCustomSectionDefinitions([]);
-      }
-    }
-    
-    setIsLoaded(true);
+
+    load();
+    return () => { cancelled = true; };
   }, [dateKey]);
 
-  // Save data to localStorage
+  // Debounced save for day data
   useEffect(() => {
-    if (!isLoaded || typeof window === 'undefined') return;
-    localStorage.setItem(`lumina-journal-${dateKey}`, JSON.stringify(data));
-  }, [data, dateKey, isLoaded]);
+    if (!isLoaded) return;
 
-  // Save custom section definitions
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      fetch('/api/journal', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dateKey: dateKeyRef.current, data: dataRef.current }),
+      }).catch(() => {});
+    }, 800);
+
+    return () => clearTimeout(saveTimerRef.current);
+  }, [data, isLoaded]);
+
+  // Debounced save for custom section definitions
   useEffect(() => {
-    if (!isLoaded || typeof window === 'undefined') return;
-    localStorage.setItem('lumina-journal-custom-sections', JSON.stringify(customSectionDefinitions));
+    if (!isLoaded) return;
+
+    clearTimeout(sectionsSaveTimerRef.current);
+    sectionsSaveTimerRef.current = setTimeout(() => {
+      fetch('/api/journal/custom-sections', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sectionsRef.current),
+      }).catch(() => {});
+    }, 800);
+
+    return () => clearTimeout(sectionsSaveTimerRef.current);
   }, [customSectionDefinitions, isLoaded]);
 
   const updateDreamJournal = useCallback((text: string) => {

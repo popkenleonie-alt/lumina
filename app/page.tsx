@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { migrateLocalStorageToDB } from '@/lib/migrateLocalStorage';
 import { WeekStrip } from '@/components/journal/WeekStrip';
 import { DayView } from '@/components/journal/DayView';
 import { FloatingButton } from '@/components/journal/FloatingButton';
@@ -16,6 +17,11 @@ export default function LuminaJournal() {
   const [dayViewRevision, setDayViewRevision] = useState(0);
 
   const minSwipeDistance = 50;
+
+  // One-time migration from localStorage to database
+  useEffect(() => {
+    migrateLocalStorageToDB();
+  }, []);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     setTouchEnd(null);
@@ -48,15 +54,18 @@ export default function LuminaJournal() {
     }
   }, [touchStart, touchEnd]);
 
-  const handleFinishDay = useCallback((summary: string, stickers: string[]) => {
+  const handleFinishDay = useCallback(async (summary: string, stickers: string[]) => {
     const dateKey = formatDateKey(selectedDate);
-    const storageKey = `lumina-journal-${dateKey}`;
     try {
-      const saved = localStorage.getItem(storageKey);
-      const dayData = saved ? JSON.parse(saved) : {};
+      const res = await fetch(`/api/journal?dateKey=${dateKey}`);
+      const dayData = res.ok ? (await res.json()) ?? {} : {};
       dayData.stickers = stickers;
       dayData.daySummary = summary;
-      localStorage.setItem(storageKey, JSON.stringify(dayData));
+      await fetch('/api/journal', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dateKey, data: dayData }),
+      });
       setDayViewRevision(r => r + 1);
     } catch {
       // ignore

@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model JournalDay {
+  dateKey   String   @id
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CustomSectionDefinitions {
+  id          String @id @default("singleton")
+  definitions Json
+  updatedAt   DateTime @updatedAt
+}
