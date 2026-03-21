@@ -164,7 +164,7 @@ function PhotoSection({ photos, onChange, readOnly, color }: { photos: string[];
               {!readOnly && (
                 <button
                   onClick={() => onChange(photos.filter((_, i) => i !== index))}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100"
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white"
                 >
                   <X className="w-4 h-4" />
                 </button>

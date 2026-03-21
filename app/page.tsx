@@ -6,55 +6,21 @@ import { WeekStrip } from '@/components/journal/WeekStrip';
 import { DayView } from '@/components/journal/DayView';
 import { FloatingButton } from '@/components/journal/FloatingButton';
 import { FinishDayDrawer } from '@/components/journal/FinishDayDrawer';
-import { formatDateKey, getNextDay, getPreviousDay, isTodayCheck } from '@/lib/dateHelpers';
+import { formatDateKey, isTodayCheck } from '@/lib/dateHelpers';
 
 export default function LuminaJournal() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showFinishDay, setShowFinishDay] = useState(false);
   const [dayViewRevision, setDayViewRevision] = useState(0);
 
-  const minSwipeDistance = 50;
-
-  // One-time migration from localStorage to database
+  // Initialize date and run migration on mount (client-only)
   useEffect(() => {
+    setSelectedDate(new Date());
     migrateLocalStorageToDB();
   }, []);
 
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  }, []);
-
-  const onTouchMove = useCallback((e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  }, []);
-
-  const onTouchEnd = useCallback(() => {
-    if (!touchStart || !touchEnd) return;
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      setSlideDirection('left');
-      setTimeout(() => {
-        setSelectedDate(prev => getNextDay(prev));
-        setSlideDirection(null);
-      }, 150);
-    } else if (isRightSwipe) {
-      setSlideDirection('right');
-      setTimeout(() => {
-        setSelectedDate(prev => getPreviousDay(prev));
-        setSlideDirection(null);
-      }, 150);
-    }
-  }, [touchStart, touchEnd]);
-
   const handleFinishDay = useCallback(async (summary: string, stickers: string[]) => {
+    if (!selectedDate) return;
     const dateKey = formatDateKey(selectedDate);
     try {
       const res = await fetch(`/api/journal?dateKey=${dateKey}`);
@@ -72,6 +38,12 @@ export default function LuminaJournal() {
     }
   }, [selectedDate]);
 
+  if (!selectedDate) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black to-purple-950" />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-purple-950">
       <div className="mx-auto max-w-[430px] md:max-w-none min-h-screen">
@@ -86,18 +58,7 @@ export default function LuminaJournal() {
         </header>
 
         {/* Day Content */}
-        <main
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          className={`transition-all duration-200 ease-out ${
-            slideDirection === 'left'
-              ? '-translate-x-4 opacity-0'
-              : slideDirection === 'right'
-              ? 'translate-x-4 opacity-0'
-              : 'translate-x-0 opacity-100'
-          }`}
-        >
+        <main>
           <DayView key={dayViewRevision} selectedDate={selectedDate} />
         </main>
 

@@ -111,7 +111,7 @@ export function DayView({ selectedDate }: DayViewProps) {
       </div>
 
       {/* Daily Intention */}
-      <div className="mb-4">
+      <div className="mt-6 mb-6">
         <div className="flex items-center gap-2 mb-2">
           <Sun className="w-4 h-4 text-amber-400" />
           <span className="text-sm font-medium text-violet-200">Today&apos;s Intention</span>

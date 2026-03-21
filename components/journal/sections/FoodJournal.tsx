@@ -202,7 +202,7 @@ function FoodEntryCard({ entry, expanded, onToggle, onUpdate, onRemove, readOnly
                   {!readOnly && (
                     <button
                       onClick={() => removePhoto(index)}
-                      className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white transition-opacity"
                     >
                       <X className="w-3 h-3" />
                     </button>
