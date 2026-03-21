@@ -48,7 +48,7 @@ export default function LuminaJournal() {
             backgroundImage: 'url(/anime-girl.png)',
             backgroundSize: '60%',
             backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'left center',
+            backgroundPosition: 'left 60%',
           }}
         />
         <div
@@ -73,7 +73,7 @@ export default function LuminaJournal() {
           backgroundImage: 'url(/anime-girl.png)',
           backgroundSize: '60%',
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'left center',
+          backgroundPosition: 'left 60%',
         }}
       />
       {/* Faded horse background — right */}
