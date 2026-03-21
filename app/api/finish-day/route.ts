@@ -1,6 +1,5 @@
-import { generateText, Output } from 'ai';
+import { generateText } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { z } from 'zod';
 import { STICKERS } from '@/lib/stickers';
 import type { DayData, CustomSectionDefinition } from '@/hooks/useJournalStore';
 
@@ -33,28 +32,30 @@ export async function POST(req: Request) {
   try {
     const result = await generateText({
       model: anthropic('claude-haiku-4-5-20251001'),
-      output: Output.object({
-        schema: z.object({
-          summary: z.string().describe('A concise, warm day summary (2-3 sentences). Reference the day\'s intention if one was set and reflect on how the day aligned with it. Highlight one or two specific moments from entries. End with a brief encouraging note. If the journal is mostly empty, give a kind one-liner. Write in a personal tone as if talking to a friend.'),
-          stickers: z.array(z.string()).describe('An array of 1-4 sticker IDs earned today, based on the entries. Only award stickers clearly supported by what they wrote.'),
-        }),
-      }),
       system: `You are Lumina, a warm and supportive journal companion. The user has finished their day and wants a brief summary/reflection.
 
 Available sticker IDs:
-${stickerList}`,
+${stickerList}
+
+Respond with ONLY a JSON object (no markdown, no code fences) with this shape:
+{"summary": "...", "stickers": ["sticker-id-1", ...]}
+
+- summary: A concise, warm day summary (2-3 sentences). Reference the day's intention if one was set and reflect on how the day aligned with it. Highlight one or two specific moments from entries. End with a brief encouraging note. If the journal is mostly empty, give a kind one-liner. Write in a personal tone as if talking to a friend.
+- stickers: An array of 1-4 sticker IDs earned today, based on the entries. Only award stickers clearly supported by what they wrote.`,
       prompt: `Here is the journal for ${dateKey}:\n\n${journalContext}`,
       abortSignal: req.signal,
     });
 
-    const object = result.object;
+    const cleaned = result.text.replace(/^```(?:json)?\s*\n?/m, '').replace(/\n?```\s*$/m, '').trim();
+    const object = JSON.parse(cleaned);
     const validStickers = (object?.stickers ?? []).filter((id: string) => stickerIds.has(id));
     return Response.json({
       summary: object?.summary ?? '',
       stickers: validStickers.slice(0, 4),
     });
-  } catch (error) {
-    console.error('finish-day AI error:', error);
+  } catch (error: unknown) {
+    const err = error as { message?: string; statusCode?: number; url?: string; cause?: unknown };
+    console.error('finish-day AI error:', err.message, 'status:', err.statusCode, 'url:', err.url, 'cause:', err.cause);
     return Response.json({ error: 'Failed to generate summary' }, { status: 500 });
   }
 }
