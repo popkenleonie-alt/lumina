@@ -13,6 +13,8 @@ import type {
   CycleData,
   CustomSectionData,
   CustomSectionDefinition,
+  WorryEntry,
+  BeliefEntry,
 } from '@/hooks/useJournalStore';
 
 interface AIAssistantProps {
@@ -22,6 +24,10 @@ interface AIAssistantProps {
   onUpdateDoneList: (items: ChecklistItem[]) => void;
   onUpdateDreamJournal: (text: string) => void;
   onUpdateMood: (data: Partial<CycleData>) => void;
+  onUpdateWorries: (worries: WorryEntry[]) => void;
+  onUpdateBeliefs: (beliefs: BeliefEntry[]) => void;
+  onUpdateIntention: (intention: string) => void;
+  onUpdateNotes: (notes: string) => void;
   onUpdateCustomSectionData: (sectionId: string, data: CustomSectionData) => void;
   onSectionHighlight?: (sectionId: string) => void;
 }
@@ -46,7 +52,7 @@ const TOOL_PILL_MAP: Record<string, { icon: string; label: (args: Record<string,
   },
   add_done_items: {
     icon: '✅',
-    label: (args) => `Added ${(args.items as string[]).length} item${(args.items as string[]).length > 1 ? 's' : ''}`,
+    label: (args) => `Added ${(args.items as unknown[]).length} item${(args.items as unknown[]).length > 1 ? 's' : ''}`,
   },
   update_dream_journal: {
     icon: '🌙',
@@ -55,6 +61,22 @@ const TOOL_PILL_MAP: Record<string, { icon: string; label: (args: Record<string,
   update_mood: {
     icon: '🌸',
     label: (args) => `Set mood to ${args.mood}`,
+  },
+  add_worries: {
+    icon: '🌧️',
+    label: (args) => `Added ${(args.worries as unknown[]).length} worry${(args.worries as unknown[]).length > 1 ? 'es' : ''}`,
+  },
+  add_beliefs: {
+    icon: '🧠',
+    label: (args) => `Added ${(args.beliefs as unknown[]).length} belief${(args.beliefs as unknown[]).length > 1 ? 's' : ''}`,
+  },
+  update_intention: {
+    icon: '☀️',
+    label: () => 'Updated intention',
+  },
+  update_notes: {
+    icon: '💭',
+    label: () => 'Added thoughts',
   },
   update_custom_section: {
     icon: '📝',
@@ -69,6 +91,10 @@ export function AIAssistant({
   onUpdateDoneList,
   onUpdateDreamJournal,
   onUpdateMood,
+  onUpdateWorries,
+  onUpdateBeliefs,
+  onUpdateIntention,
+  onUpdateNotes,
   onUpdateCustomSectionData,
   onSectionHighlight,
 }: AIAssistantProps) {
@@ -87,11 +113,15 @@ export function AIAssistant({
   // Build context from journal data — use refs so transport body stays current
   const contextRef = useRef('');
   contextRef.current = `
+Intention: ${journalData.intention || '(not set)'}
 Dream Journal: ${journalData.dreamJournal || '(empty)'}
 Done List: ${journalData.doneList.map((i) => `${i.checked ? '✓' : '○'} ${i.text}`).join(', ') || '(empty)'}
 Badges earned: ${journalData.badges.join(', ') || '(none)'}
 Mood: ${journalData.cycleTracker.mood || 'Not set'}
 Food entries: ${(journalData.foodEntries ?? []).length > 0 ? journalData.foodEntries.map((e) => `${new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${e.what}${e.why ? ` (why: ${e.why})` : ''}`).join('; ') : '(none)'}
+Worries: ${(journalData.worries ?? []).length > 0 ? journalData.worries.map((w) => w.worry).join('; ') : '(none)'}
+Beliefs: ${(journalData.beliefs ?? []).length > 0 ? journalData.beliefs.map((b) => b.belief).join('; ') : '(none)'}
+Additional Thoughts: ${journalData.notes || '(empty)'}
 `;
 
   const customSectionsRef = useRef<{ name: string; type: string }[]>([]);
@@ -126,7 +156,7 @@ Food entries: ${(journalData.foodEntries ?? []).length > 0 ? journalData.foodEnt
         case 'update_food_journal': {
           const newEntry: FoodEntry = {
             id: `ai-food-${Date.now()}`,
-            timestamp: new Date().toISOString(),
+            timestamp: (input.timestamp as string) || new Date().toISOString(),
             what: (input.what as string) || '',
             why: (input.why as string) || '',
             feelingBefore: (input.feelingBefore as string) || '',
@@ -138,13 +168,17 @@ Food entries: ${(journalData.foodEntries ?? []).length > 0 ? journalData.foodEnt
           break;
         }
         case 'add_done_items': {
-          const items = input.items as string[];
-          const newItems: ChecklistItem[] = items.map((text, i) => ({
-            id: `ai-${Date.now()}-${i}`,
-            text,
-            checked: true,
-            timestamp: new Date().toISOString(),
-          }));
+          const items = input.items as Array<{ text: string; timestamp?: string } | string>;
+          const newItems: ChecklistItem[] = items.map((item, i) => {
+            const text = typeof item === 'string' ? item : item.text;
+            const timestamp = typeof item === 'string' ? undefined : item.timestamp;
+            return {
+              id: `ai-${Date.now()}-${i}`,
+              text,
+              checked: true,
+              timestamp: timestamp || new Date().toISOString(),
+            };
+          });
           onUpdateDoneList([...data.doneList, ...newItems]);
           onSectionHighlight?.('done-list');
           break;
@@ -160,6 +194,41 @@ Food entries: ${(journalData.foodEntries ?? []).length > 0 ? journalData.foodEnt
           const mood = input.mood as string;
           onUpdateMood({ mood });
           onSectionHighlight?.('cycle-tracker');
+          break;
+        }
+        case 'add_worries': {
+          const worries = input.worries as Array<{ worry: string; worstCase?: string; action?: string }>;
+          const newWorries: WorryEntry[] = worries.map((w, i) => ({
+            id: `ai-worry-${Date.now()}-${i}`,
+            worry: w.worry,
+            worstCase: w.worstCase || '',
+            action: w.action || '',
+          }));
+          onUpdateWorries([...(data.worries ?? []), ...newWorries]);
+          onSectionHighlight?.('worries');
+          break;
+        }
+        case 'add_beliefs': {
+          const beliefs = input.beliefs as Array<{ belief: string; challenge?: string; reframe?: string }>;
+          const newBeliefs: BeliefEntry[] = beliefs.map((b, i) => ({
+            id: `ai-belief-${Date.now()}-${i}`,
+            belief: b.belief,
+            challenge: b.challenge || '',
+            reframe: b.reframe || '',
+          }));
+          onUpdateBeliefs([...(data.beliefs ?? []), ...newBeliefs]);
+          onSectionHighlight?.('beliefs');
+          break;
+        }
+        case 'update_intention': {
+          onUpdateIntention(input.intention as string);
+          break;
+        }
+        case 'update_notes': {
+          const text = input.text as string;
+          const existing = data.notes;
+          onUpdateNotes(existing ? `${existing}\n\n${text}` : text);
+          onSectionHighlight?.('additional-thoughts');
           break;
         }
         case 'update_custom_section': {

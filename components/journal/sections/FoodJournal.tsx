@@ -17,6 +17,11 @@ function formatTime(isoString: string): string {
   });
 }
 
+function toTimeValue(isoString: string): string {
+  const d = new Date(isoString);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 export function FoodJournal({ entries, onChange, readOnly }: FoodJournalProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -122,7 +127,23 @@ function FoodEntryCard({ entry, expanded, onToggle, onUpdate, onRemove, readOnly
         <div className="flex items-center gap-2 min-w-0">
           <div className="flex items-center gap-1 text-xs text-amber-400/70 shrink-0">
             <Clock className="w-3 h-3" />
-            {formatTime(entry.timestamp)}
+            {readOnly ? (
+              formatTime(entry.timestamp)
+            ) : (
+              <input
+                type="time"
+                value={toTimeValue(entry.timestamp)}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  const d = new Date(entry.timestamp);
+                  const [hours, minutes] = e.target.value.split(':').map(Number);
+                  d.setHours(hours, minutes);
+                  onUpdate('timestamp', d.toISOString());
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs text-amber-400/70 bg-transparent border-none outline-none cursor-pointer hover:text-amber-300 [&::-webkit-calendar-picker-indicator]:hidden"
+              />
+            )}
           </div>
           <span className="text-sm text-violet-200 truncate">{preview}</span>
         </div>

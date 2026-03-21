@@ -10,8 +10,25 @@ interface DoneListProps {
   readOnly?: boolean;
 }
 
+function toTimeValue(isoString: string): string {
+  const d = new Date(isoString);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 export function DoneList({ items, onChange, readOnly }: DoneListProps) {
   const [newItem, setNewItem] = useState('');
+
+  const updateTimestamp = (id: string, timeValue: string) => {
+    onChange(
+      items.map((item) => {
+        if (item.id !== id || !item.timestamp) return item;
+        const d = new Date(item.timestamp);
+        const [hours, minutes] = timeValue.split(':').map(Number);
+        d.setHours(hours, minutes);
+        return { ...item, timestamp: d.toISOString() };
+      }),
+    );
+  };
 
   const addItem = () => {
     if (!newItem.trim()) return;
@@ -41,9 +58,18 @@ export function DoneList({ items, onChange, readOnly }: DoneListProps) {
             {item.timestamp && (
               <div className="flex items-center gap-1 mt-0.5">
                 <Clock className="w-3 h-3 text-violet-400/50" />
-                <span className="text-[10px] text-violet-400/50">
-                  {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
+                {readOnly ? (
+                  <span className="text-[10px] text-violet-400/50">
+                    {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                ) : (
+                  <input
+                    type="time"
+                    value={toTimeValue(item.timestamp)}
+                    onChange={(e) => updateTimestamp(item.id, e.target.value)}
+                    className="text-[10px] text-violet-400/50 bg-transparent border-none outline-none cursor-pointer hover:text-violet-300 [&::-webkit-calendar-picker-indicator]:hidden"
+                  />
+                )}
               </div>
             )}
           </div>

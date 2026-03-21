@@ -44,6 +44,13 @@ export interface BeliefEntry {
   reframe: string;
 }
 
+export interface WorryEntry {
+  id: string;
+  worry: string;
+  worstCase: string;
+  action: string;
+}
+
 export interface DayData {
   dreamJournal: string;
   doneList: ChecklistItem[];
@@ -57,6 +64,7 @@ export interface DayData {
   };
   foodEntries: FoodEntry[];
   beliefs: BeliefEntry[];
+  worries: WorryEntry[];
   intention: string;
   customSections: Record<string, CustomSectionData>;
   notes: string;
@@ -87,6 +95,7 @@ const defaultDayData: DayData = {
     snacks: { text: '', photos: [] },
   },
   beliefs: [],
+  worries: [],
   foodEntries: [],
   customSections: {},
   notes: '',
@@ -251,6 +260,10 @@ export function useJournalStore(selectedDate: Date) {
     setData(prev => ({ ...prev, beliefs }));
   }, []);
 
+  const updateWorries = useCallback((worries: WorryEntry[]) => {
+    setData(prev => ({ ...prev, worries }));
+  }, []);
+
   const updateCustomSectionData = useCallback((sectionId: string, sectionData: CustomSectionData) => {
     setData(prev => ({
       ...prev,
@@ -292,6 +305,7 @@ export function useJournalStore(selectedDate: Date) {
     updateFoodJournal,
     updateFoodEntries,
     updateBeliefs,
+    updateWorries,
     addCustomSection,
     updateCustomSection,
     deleteCustomSection,

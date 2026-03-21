@@ -12,6 +12,14 @@ import {
 import { formatDateKey } from '@/lib/dateHelpers';
 import type { DayData, CustomSectionDefinition } from '@/hooks/useJournalStore';
 
+interface Badge {
+  name: string;
+  category: string;
+  intensity: number;
+  explanation: string;
+  whyItMatters: string;
+}
+
 interface FinishDayDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,12 +34,14 @@ export function FinishDayDrawer({
   onFinish,
 }: FinishDayDrawerProps) {
   const [summary, setSummary] = useState<string | null>(null);
+  const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       setSummary(null);
+      setBadges([]);
       setError(null);
       return;
     }
@@ -62,6 +72,7 @@ export function FinishDayDrawer({
             if (!res.ok) throw new Error('Failed to generate summary');
             const json = await res.json();
             setSummary(json.summary);
+            setBadges(json.badges ?? []);
             onFinish(json.summary, json.stickers ?? []);
           });
       })
@@ -110,10 +121,57 @@ export function FinishDayDrawer({
           )}
 
           {summary && !loading && (
-            <div className="rounded-xl bg-violet-950/30 border border-violet-500/20 p-4">
-              <p className="text-violet-100 text-sm leading-relaxed whitespace-pre-wrap">
-                {summary}
-              </p>
+            <div className="space-y-4">
+              <div className="rounded-xl bg-violet-950/30 border border-violet-500/20 p-4">
+                <p className="text-violet-100 text-sm leading-relaxed whitespace-pre-wrap">
+                  {summary}
+                </p>
+              </div>
+
+              {badges.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-medium text-violet-400 uppercase tracking-wider">
+                    Badges Earned
+                  </h3>
+                  {badges.map((badge, i) => {
+                    const intensityDots = '●'.repeat(badge.intensity) + '○'.repeat(3 - badge.intensity);
+                    const categoryColors: Record<string, string> = {
+                      Discipline: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+                      Courage: 'text-red-400 bg-red-400/10 border-red-400/20',
+                      Growth: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+                      Reflection: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+                      Connection: 'text-pink-400 bg-pink-400/10 border-pink-400/20',
+                      'Well-being': 'text-teal-400 bg-teal-400/10 border-teal-400/20',
+                      Creativity: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+                    };
+                    const colorClass = categoryColors[badge.category] || 'text-violet-400 bg-violet-400/10 border-violet-400/20';
+
+                    return (
+                      <div key={i} className={`rounded-xl border p-3 ${colorClass.split(' ').slice(1).join(' ')}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-sm font-medium ${colorClass.split(' ')[0]}`}>
+                            {badge.name}
+                          </span>
+                          <span className="text-[10px] text-violet-400/60">
+                            {intensityDots}
+                          </span>
+                        </div>
+                        <span className="inline-block text-[10px] px-1.5 py-0.5 rounded-full bg-white/5 text-violet-300/70 mb-1.5">
+                          {badge.category}
+                        </span>
+                        <p className="text-xs text-violet-200/80 leading-relaxed">
+                          {badge.explanation}
+                        </p>
+                        {badge.whyItMatters && (
+                          <p className="text-xs text-violet-400/60 mt-1 italic">
+                            {badge.whyItMatters}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>

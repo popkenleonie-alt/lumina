@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain, Award, Sun, Eye, EyeOff, MessageSquare } from 'lucide-react';
+import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain, CloudRain, Award, Sun, Eye, EyeOff, MessageSquare } from 'lucide-react';
 import { formatDisplayDate, isTodayCheck } from '@/lib/dateHelpers';
 import { useJournalStore, type CustomSectionDefinition } from '@/hooks/useJournalStore';
 import { SectionCard } from './SectionCard';
@@ -12,6 +12,7 @@ import { DoneList } from './sections/DoneList';
 import { CycleTracker } from './sections/CycleTracker';
 import { FoodJournal } from './sections/FoodJournal';
 import { Beliefs } from './sections/Beliefs';
+import { Worries } from './sections/Worries';
 import { Stickers } from './sections/Stickers';
 import { CustomSection } from './sections/CustomSection';
 import { AdditionalThoughts } from './sections/AdditionalThoughts';
@@ -44,6 +45,7 @@ export function DayView({ selectedDate }: DayViewProps) {
     updateFoodJournal,
     updateFoodEntries,
     updateBeliefs,
+    updateWorries,
     addCustomSection,
     updateCustomSection,
     deleteCustomSection,
@@ -136,6 +138,10 @@ export function DayView({ selectedDate }: DayViewProps) {
               onUpdateDoneList={updateDoneList}
               onUpdateDreamJournal={updateDreamJournal}
               onUpdateMood={updateCycleTracker}
+              onUpdateWorries={updateWorries}
+              onUpdateBeliefs={updateBeliefs}
+              onUpdateIntention={updateIntention}
+              onUpdateNotes={updateNotes}
               onUpdateCustomSectionData={updateCustomSectionData}
               onSectionHighlight={handleSectionHighlight}
             />
@@ -195,6 +201,18 @@ export function DayView({ selectedDate }: DayViewProps) {
             <Beliefs
               entries={data.beliefs ?? []}
               onChange={updateBeliefs}
+              readOnly={readOnly}
+            />
+          </SectionCard>
+        </div>
+
+        {/* Worries */}
+        <div className={cn('rounded-2xl md:col-span-2', highlightedSections.has('worries') && highlightRing)}>
+          <SectionCard title="Worries" icon={<CloudRain className="w-5 h-5" />} accentColor="orange" hidden={hiddenSections.has('worries')} onToggleVisibility={() => toggleSection('worries')}>
+            <Worries
+              entries={data.worries ?? []}
+              onChange={updateWorries}
+              selectedDate={selectedDate}
               readOnly={readOnly}
             />
           </SectionCard>
