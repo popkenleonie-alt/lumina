@@ -57,7 +57,7 @@ export default function LuminaJournal() {
             backgroundImage: 'url(/anime-horse.png)',
             backgroundSize: '60%',
             backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right center',
+            backgroundPosition: 'right 60%',
           }}
         />
       </div>
@@ -83,7 +83,7 @@ export default function LuminaJournal() {
           backgroundImage: 'url(/anime-horse.png)',
           backgroundSize: '60%',
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right center',
+          backgroundPosition: 'right 60%',
         }}
       />
       <div className="mx-auto max-w-[430px] md:max-w-none min-h-screen relative z-10">
