@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Send, Sparkles, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
@@ -84,8 +84,9 @@ export function AIAssistant({
   const customSectionDefsRef = useRef(customSectionDefinitions);
   customSectionDefsRef.current = customSectionDefinitions;
 
-  // Build context from journal data
-  const context = `
+  // Build context from journal data — use refs so transport body stays current
+  const contextRef = useRef('');
+  contextRef.current = `
 Dream Journal: ${journalData.dreamJournal || '(empty)'}
 Done List: ${journalData.doneList.map((i) => `${i.checked ? '✓' : '○'} ${i.text}`).join(', ') || '(empty)'}
 Badges earned: ${journalData.badges.join(', ') || '(none)'}
@@ -93,20 +94,29 @@ Mood: ${journalData.cycleTracker.mood || 'Not set'}
 Food entries: ${(journalData.foodEntries ?? []).length > 0 ? journalData.foodEntries.map((e) => `${new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${e.what}${e.why ? ` (why: ${e.why})` : ''}`).join('; ') : '(none)'}
 `;
 
-  const customSectionsForApi = customSectionDefinitions.map((s) => ({
+  const customSectionsRef = useRef<{ name: string; type: string }[]>([]);
+  customSectionsRef.current = customSectionDefinitions.map((s) => ({
     name: s.name,
     type: s.type,
   }));
 
+  // Stable body object with getters — reads current ref values at serialization time
+  const body = useMemo(() => {
+    const obj = {};
+    Object.defineProperty(obj, 'context', { get: () => contextRef.current, enumerable: true });
+    Object.defineProperty(obj, 'customSections', { get: () => customSectionsRef.current, enumerable: true });
+    Object.defineProperty(obj, 'currentTime', { get: () => new Date().toLocaleTimeString(), enumerable: true });
+    return obj;
+  }, []);
+
+  // Stable transport — never recreated, avoids useChat re-initialization
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: '/api/journal-ai', body }),
+    [body],
+  );
+
   const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/journal-ai',
-      body: {
-        context,
-        customSections: customSectionsForApi,
-        currentTime: new Date().toLocaleTimeString(),
-      },
-    }),
+    transport,
     onToolCall: ({ toolCall }) => {
       const { toolName, input, toolCallId } = toolCall as { toolName: string; input: Record<string, unknown>; toolCallId: string };
       const data = journalDataRef.current;
