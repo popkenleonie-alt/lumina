@@ -148,17 +148,22 @@ export function useJournalStore(selectedDate: Date) {
   useEffect(() => {
     if (!isLoaded) return;
 
+    // Capture the current dateKey and data in this closure to avoid
+    // saving stale data to the wrong date after a date switch.
+    const saveDateKey = dateKey;
+    const saveData = data;
+
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       fetch('/api/journal', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dateKey: dateKeyRef.current, data: dataRef.current }),
+        body: JSON.stringify({ dateKey: saveDateKey, data: saveData }),
       }).catch(() => {});
     }, 800);
 
     return () => clearTimeout(saveTimerRef.current);
-  }, [data, isLoaded]);
+  }, [data, dateKey, isLoaded]);
 
   // Debounced save for custom section definitions
   useEffect(() => {
