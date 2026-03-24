@@ -9,9 +9,10 @@ interface AdditionalThoughtsProps {
   onChangeText: (text: string) => void;
   onChangePhotos: (photos: string[]) => void;
   readOnly?: boolean;
+  placeholder?: string;
 }
 
-export function AdditionalThoughts({ text, photos, onChangeText, onChangePhotos, readOnly }: AdditionalThoughtsProps) {
+export function AdditionalThoughts({ text, photos, onChangeText, onChangePhotos, readOnly, placeholder }: AdditionalThoughtsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,7 +33,7 @@ export function AdditionalThoughts({ text, photos, onChangeText, onChangePhotos,
       <textarea
         value={text}
         onChange={(e) => onChangeText(e.target.value)}
-        placeholder="Anything else on your mind..."
+        placeholder={placeholder ?? 'Anything else on your mind...'}
         readOnly={readOnly}
         className="w-full min-h-[100px] bg-white/5 border border-violet-500/20 rounded-xl px-3 py-2 text-sm text-violet-100 placeholder:text-violet-400/50 focus:outline-none focus:ring-1 focus:ring-violet-400/50 resize-y"
       />

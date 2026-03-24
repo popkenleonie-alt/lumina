@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain, CloudRain, Award, Sun, Eye, EyeOff, MessageSquare } from 'lucide-react';
+import { Plus, ArrowUp, ArrowDown, Lock, Sparkles, Moon, CheckCircle, Heart, UtensilsCrossed, Brain, CloudRain, Award, Sun, Eye, EyeOff, MessageSquare, Dumbbell } from 'lucide-react';
 import { formatDisplayDate, isTodayCheck } from '@/lib/dateHelpers';
+import { getTzolkinDay } from '@/lib/tzolkin';
 import { useJournalStore, type CustomSectionDefinition } from '@/hooks/useJournalStore';
 import { SectionCard } from './SectionCard';
 import { AddSectionModal } from './AddSectionModal';
@@ -16,6 +17,9 @@ import { Worries } from './sections/Worries';
 import { Stickers } from './sections/Stickers';
 import { CustomSection } from './sections/CustomSection';
 import { AdditionalThoughts } from './sections/AdditionalThoughts';
+import { SportsOverview } from './SportsOverview';
+import { useWeekSports } from '@/hooks/useWeekSports';
+import { useSportTypes } from '@/hooks/useSportTypes';
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
@@ -56,6 +60,8 @@ export function DayView({ selectedDate }: DayViewProps) {
     updateCustomSectionData,
   } = useJournalStore(selectedDate);
 
+  const { weekSports, weekDays, toggleSport } = useWeekSports(selectedDate);
+  const { sportTypes, addSportType, updateSportType, deleteSportType } = useSportTypes();
   const { hiddenSections, toggleSection } = useHiddenSections();
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -152,7 +158,7 @@ export function DayView({ selectedDate }: DayViewProps) {
       {/* Journal sections — single column on mobile, two columns on md+ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Dream Journal */}
-        <div className={cn('rounded-2xl h-full', highlightedSections.has('dream-journal') && highlightRing)}>
+        <div className={cn('rounded-2xl h-full md:col-span-2', highlightedSections.has('dream-journal') && highlightRing)}>
           <SectionCard title="Dream Journal" icon={<Moon className="w-5 h-5" />} accentColor="purple" hidden={hiddenSections.has('dream-journal')} onToggleVisibility={() => toggleSection('dream-journal')}>
             <DreamJournal
               value={data.dreamJournal}
@@ -163,7 +169,7 @@ export function DayView({ selectedDate }: DayViewProps) {
         </div>
 
         {/* Done List */}
-        <div className={cn('rounded-2xl h-full', highlightedSections.has('done-list') && highlightRing)}>
+        <div className={cn('rounded-2xl h-full md:col-span-2', highlightedSections.has('done-list') && highlightRing)}>
           <SectionCard title="Done List" icon={<CheckCircle className="w-5 h-5" />} accentColor="green" hidden={hiddenSections.has('done-list')} onToggleVisibility={() => toggleSection('done-list')}>
             <DoneList
               items={data.doneList}
@@ -173,8 +179,24 @@ export function DayView({ selectedDate }: DayViewProps) {
           </SectionCard>
         </div>
 
+        {/* Sports Tracker */}
+        <div className="rounded-2xl h-full md:col-span-2">
+          <SectionCard title="Sports" icon={<Dumbbell className="w-5 h-5" />} accentColor="purple" hidden={hiddenSections.has('sports')} onToggleVisibility={() => toggleSection('sports')}>
+            <SportsOverview
+              weekSports={weekSports}
+              weekDays={weekDays}
+              selectedDate={selectedDate}
+              sportTypes={sportTypes}
+              onToggleSport={toggleSport}
+              onAddSportType={addSportType}
+              onUpdateSportType={updateSportType}
+              onDeleteSportType={deleteSportType}
+            />
+          </SectionCard>
+        </div>
+
         {/* Cycle Tracker */}
-        <div className={cn('rounded-2xl h-full', highlightedSections.has('cycle-tracker') && highlightRing)}>
+        <div className={cn('rounded-2xl h-full md:col-span-2', highlightedSections.has('cycle-tracker') && highlightRing)}>
           <SectionCard title="Cycle Tracker" icon={<Heart className="w-5 h-5" />} accentColor="rose" hidden={hiddenSections.has('cycle-tracker')} onToggleVisibility={() => toggleSection('cycle-tracker')}>
             <CycleTracker
               data={data.cycleTracker}
@@ -292,6 +314,7 @@ export function DayView({ selectedDate }: DayViewProps) {
               onChangeText={updateNotes}
               onChangePhotos={updateNotePhotos}
               readOnly={readOnly}
+              placeholder={getTzolkinDay(selectedDate).reflection}
             />
           </SectionCard>
         </div>

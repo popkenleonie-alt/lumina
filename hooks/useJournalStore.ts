@@ -55,6 +55,7 @@ export interface DayData {
   dreamJournal: string;
   doneList: ChecklistItem[];
   badges: string[];
+  sports: string[];
   cycleTracker: CycleData;
   foodJournal: {
     morning: MealEntry;
@@ -86,6 +87,7 @@ const defaultDayData: DayData = {
   dreamJournal: '',
   doneList: [],
   badges: [],
+  sports: [],
   intention: '',
   cycleTracker: { phase: null, mood: null },
   foodJournal: {
@@ -112,8 +114,8 @@ export function useJournalStore(selectedDate: Date) {
   const dateKey = formatDateKey(selectedDate);
 
   // Refs for debounced saving
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  const sectionsSaveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const sectionsSaveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const dataRef = useRef(data);
   dataRef.current = data;
   const sectionsRef = useRef(customSectionDefinitions);
@@ -204,6 +206,15 @@ export function useJournalStore(selectedDate: Date) {
       badges: prev.badges.includes(badge)
         ? prev.badges.filter(b => b !== badge)
         : [...prev.badges, badge],
+    }));
+  }, []);
+
+  const toggleSport = useCallback((sport: string) => {
+    setData(prev => ({
+      ...prev,
+      sports: (prev.sports ?? []).includes(sport)
+        ? prev.sports.filter(s => s !== sport)
+        : [...(prev.sports ?? []), sport],
     }));
   }, []);
 
@@ -301,6 +312,7 @@ export function useJournalStore(selectedDate: Date) {
     updateDreamJournal,
     updateDoneList,
     toggleBadge,
+    toggleSport,
     updateCycleTracker,
     updateFoodJournal,
     updateFoodEntries,

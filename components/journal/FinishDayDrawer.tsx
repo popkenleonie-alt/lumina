@@ -99,7 +99,7 @@ export function FinishDayDrawer({
           </DrawerDescription>
         </DrawerHeader>
 
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 overflow-y-auto max-h-[70vh]">
           {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="flex gap-1.5">
