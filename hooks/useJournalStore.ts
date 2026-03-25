@@ -138,7 +138,7 @@ export function useJournalStore(selectedDate: Date) {
         if (cancelled) return;
 
         const dayData = await dayRes.json();
-        setData(dayData ?? defaultDayData);
+        setData(dayData ? { ...defaultDayData, ...dayData } : defaultDayData);
 
         const sections = await sectionsRes.json();
         setCustomSectionDefinitions(Array.isArray(sections) ? sections : []);
