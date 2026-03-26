@@ -17,6 +17,17 @@ interface SportsOverviewProps {
   onDeleteSportType: (id: string) => void;
 }
 
+const SPORT_COLORS = [
+  { dot: 'bg-violet-400', glow: 'shadow-[0_0_6px_rgba(167,139,250,0.8)]', bg: 'bg-violet-500/20', shadow: 'shadow-[0_0_10px_rgba(139,92,246,0.35),0_0_20px_rgba(139,92,246,0.15)]', label: 'text-violet-300/70' },
+  { dot: 'bg-fuchsia-400', glow: 'shadow-[0_0_6px_rgba(232,121,249,0.8)]', bg: 'bg-fuchsia-500/20', shadow: 'shadow-[0_0_10px_rgba(217,70,239,0.35),0_0_20px_rgba(217,70,239,0.15)]', label: 'text-fuchsia-300/70' },
+  { dot: 'bg-pink-400', glow: 'shadow-[0_0_6px_rgba(244,114,182,0.8)]', bg: 'bg-pink-500/20', shadow: 'shadow-[0_0_10px_rgba(236,72,153,0.35),0_0_20px_rgba(236,72,153,0.15)]', label: 'text-pink-300/70' },
+  { dot: 'bg-rose-400', glow: 'shadow-[0_0_6px_rgba(251,113,133,0.8)]', bg: 'bg-rose-500/20', shadow: 'shadow-[0_0_10px_rgba(244,63,94,0.35),0_0_20px_rgba(244,63,94,0.15)]', label: 'text-rose-300/70' },
+  { dot: 'bg-purple-400', glow: 'shadow-[0_0_6px_rgba(192,132,252,0.8)]', bg: 'bg-purple-500/20', shadow: 'shadow-[0_0_10px_rgba(168,85,247,0.35),0_0_20px_rgba(168,85,247,0.15)]', label: 'text-purple-300/70' },
+  { dot: 'bg-indigo-400', glow: 'shadow-[0_0_6px_rgba(129,140,248,0.8)]', bg: 'bg-indigo-500/20', shadow: 'shadow-[0_0_10px_rgba(99,102,241,0.35),0_0_20px_rgba(99,102,241,0.15)]', label: 'text-indigo-300/70' },
+  { dot: 'bg-red-400', glow: 'shadow-[0_0_6px_rgba(248,113,113,0.8)]', bg: 'bg-red-500/20', shadow: 'shadow-[0_0_10px_rgba(239,68,68,0.35),0_0_20px_rgba(239,68,68,0.15)]', label: 'text-red-300/70' },
+  { dot: 'bg-violet-300', glow: 'shadow-[0_0_6px_rgba(196,181,253,0.8)]', bg: 'bg-violet-400/20', shadow: 'shadow-[0_0_10px_rgba(167,139,250,0.35),0_0_20px_rgba(167,139,250,0.15)]', label: 'text-violet-200/70' },
+];
+
 export function SportsOverview({
   weekSports,
   weekDays,
@@ -91,7 +102,9 @@ export function SportsOverview({
         })}
 
         {/* Sport rows */}
-        {sportTypes.map(({ id, label }) => (
+        {sportTypes.map(({ id, label }, sportIndex) => {
+          const color = SPORT_COLORS[sportIndex % SPORT_COLORS.length];
+          return (
           <React.Fragment key={id}>
             {/* Sport label */}
             <div className="flex items-center pr-3 group/row gap-1">
@@ -116,7 +129,7 @@ export function SportsOverview({
                 </div>
               ) : (
                 <>
-                  <span className="text-[11px] font-medium text-violet-300/70 whitespace-nowrap">{label}</span>
+                  <span className={cn('text-[11px] font-medium whitespace-nowrap', color.label)}>{label}</span>
                   <button
                     onClick={() => startEdit({ id, label })}
                     className="opacity-0 group-hover/row:opacity-100 text-violet-400/40 hover:text-violet-300 transition-opacity"
@@ -147,7 +160,7 @@ export function SportsOverview({
                     className={cn(
                       'w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300',
                       active
-                        ? 'bg-violet-500/20 shadow-[0_0_10px_rgba(139,92,246,0.35),0_0_20px_rgba(139,92,246,0.15)]'
+                        ? `${color.bg} ${color.shadow}`
                         : isToday
                           ? 'bg-white/[0.03] hover:bg-white/10'
                           : 'hover:bg-white/5',
@@ -157,7 +170,7 @@ export function SportsOverview({
                       className={cn(
                         'w-2 h-2 rounded-full transition-all duration-300',
                         active
-                          ? 'bg-violet-400 shadow-[0_0_6px_rgba(167,139,250,0.8)]'
+                          ? `${color.dot} ${color.glow}`
                           : 'bg-white/10',
                       )}
                     />
@@ -166,7 +179,8 @@ export function SportsOverview({
               );
             })}
           </React.Fragment>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add sport type */}
