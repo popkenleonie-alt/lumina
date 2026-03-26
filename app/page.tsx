@@ -4,15 +4,29 @@ import { useState, useCallback, useEffect } from 'react';
 import { migrateLocalStorageToDB } from '@/lib/migrateLocalStorage';
 import { WeekStrip } from '@/components/journal/WeekStrip';
 import { DayView } from '@/components/journal/DayView';
+import { WeekWrap } from '@/components/journal/WeekWrap';
 import { FloatingButton } from '@/components/journal/FloatingButton';
 import { FinishDayDrawer } from '@/components/journal/FinishDayDrawer';
 import { formatDateKey, isTodayCheck } from '@/lib/dateHelpers';
 import { getTzolkinDay } from '@/lib/tzolkin';
+import { useSportTypes } from '@/hooks/useSportTypes';
 
 export default function LuminaJournal() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [weekWrapSelected, setWeekWrapSelected] = useState(false);
   const [showFinishDay, setShowFinishDay] = useState(false);
   const [dayViewRevision, setDayViewRevision] = useState(0);
+
+  const handleSelectDate = (date: Date) => {
+    setSelectedDate(date);
+    setWeekWrapSelected(false);
+  };
+
+  const handleSelectWeekWrap = () => {
+    setWeekWrapSelected(true);
+  };
+
+  const { sportTypes } = useSportTypes();
 
   // Initialize date and run migration on mount (client-only)
   useEffect(() => {
@@ -107,12 +121,21 @@ export default function LuminaJournal() {
               );
             })()}
           </div>
-          <WeekStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+          <WeekStrip
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            weekWrapSelected={weekWrapSelected}
+            onSelectWeekWrap={handleSelectWeekWrap}
+          />
         </header>
 
-        {/* Day Content */}
+        {/* Content */}
         <main>
-          <DayView key={dayViewRevision} selectedDate={selectedDate} />
+          {weekWrapSelected ? (
+            <WeekWrap selectedDate={selectedDate} sportTypes={sportTypes} />
+          ) : (
+            <DayView key={dayViewRevision} selectedDate={selectedDate} />
+          )}
         </main>
 
         {/* Finish the Day */}
