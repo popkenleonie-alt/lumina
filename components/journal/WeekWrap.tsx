@@ -35,13 +35,16 @@ interface SectionHighlight {
 export function WeekWrap({ selectedDate, sportTypes }: WeekWrapProps) {
   const [weekData, setWeekData] = useState<Record<string, DayData | null>>({});
   const [loading, setLoading] = useState(true);
+  const [summaries, setSummaries] = useState<Record<string, string>>({});
+  const [summariesLoading, setSummariesLoading] = useState(false);
   const weekDays = getWeekDays(selectedDate);
   const weekKey = formatDateKey(weekDays[0]);
+  const dateKeys = weekDays.map(d => formatDateKey(d));
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    const dateKeys = weekDays.map(d => formatDateKey(d));
+    setSummaries({});
     Promise.all(
       dateKeys.map(dk =>
         fetch(`/api/journal?dateKey=${dk}`)
@@ -55,6 +58,23 @@ export function WeekWrap({ selectedDate, sportTypes }: WeekWrapProps) {
       for (const { dk, data } of results) map[dk] = data;
       setWeekData(map);
       setLoading(false);
+
+      // Fetch AI summaries in background
+      const hasData = Object.values(map).some(Boolean);
+      if (hasData) {
+        setSummariesLoading(true);
+        fetch('/api/week-wrap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dateKeys }),
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (!cancelled && !data.error) setSummaries(data);
+          })
+          .catch(() => {})
+          .finally(() => { if (!cancelled) setSummariesLoading(false); });
+      }
     });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -131,16 +151,26 @@ export function WeekWrap({ selectedDate, sportTypes }: WeekWrapProps) {
                 {section.empty ? (
                   <p className="text-xs text-violet-400/30">Nothing this week</p>
                 ) : (
-                  <div className="flex flex-wrap gap-x-5 gap-y-1.5">
-                    {section.stats.map(stat => (
-                      <div key={stat.label} className="flex items-baseline gap-1.5">
-                        <span className={cn('text-lg font-bold', colors.text)}>
-                          {stat.value}
-                        </span>
-                        <span className="text-xs text-violet-300/50">{stat.label}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <>
+                    <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+                      {section.stats.map(stat => (
+                        <div key={stat.label} className="flex items-baseline gap-1.5">
+                          <span className={cn('text-lg font-bold', colors.text)}>
+                            {stat.value}
+                          </span>
+                          <span className="text-xs text-violet-300/50">{stat.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* AI summary */}
+                    {summaries[section.id] && summaries[section.id] !== '—' ? (
+                      <p className="text-xs text-violet-200/60 mt-2 leading-relaxed italic">
+                        {summaries[section.id]}
+                      </p>
+                    ) : summariesLoading ? (
+                      <div className="mt-2 h-3 w-3/4 rounded bg-white/5 animate-pulse" />
+                    ) : null}
+                  </>
                 )}
               </div>
             </div>
