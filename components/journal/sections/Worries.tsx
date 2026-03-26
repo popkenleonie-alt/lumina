@@ -13,16 +13,21 @@ interface WorriesProps {
   readOnly?: boolean;
 }
 
+interface LookbackDay {
+  dateKey: string;
+  worries: WorryEntry[];
+}
+
 interface LookbackData {
-  oneWeek: { dateKey: string; worries: WorryEntry[] };
-  oneMonth: { dateKey: string; worries: WorryEntry[] };
-  oneYear: { dateKey: string; worries: WorryEntry[] };
+  oneWeek: LookbackDay[];
+  oneMonth: LookbackDay[];
+  oneYear: LookbackDay[];
 }
 
 const PERIODS = [
-  { key: 'oneWeek' as const, label: '1 week ago' },
-  { key: 'oneMonth' as const, label: '1 month ago' },
-  { key: 'oneYear' as const, label: '1 year ago' },
+  { key: 'oneWeek' as const, label: 'Past week' },
+  { key: 'oneMonth' as const, label: 'Past month' },
+  { key: 'oneYear' as const, label: 'Past year' },
 ];
 
 export function Worries({ entries, onChange, selectedDate, readOnly }: WorriesProps) {
@@ -67,8 +72,7 @@ export function Worries({ entries, onChange, selectedDate, readOnly }: WorriesPr
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
-  const activeWorries = lookbackData?.[activePeriod]?.worries ?? [];
-  const activeDateKey = lookbackData?.[activePeriod]?.dateKey;
+  const activeDays = lookbackData?.[activePeriod] ?? [];
 
   return (
     <div className="space-y-3">
@@ -108,39 +112,43 @@ export function Worries({ entries, onChange, selectedDate, readOnly }: WorriesPr
             ))}
           </div>
 
-          <div className="p-3">
+          <div className="p-3 max-h-64 overflow-y-auto">
             {lookbackLoading ? (
               <div className="flex items-center justify-center py-4">
                 <div className="w-5 h-5 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : activeWorries.length > 0 ? (
-              <div className="space-y-2">
-                <p className="text-xs text-violet-500 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {activeDateKey}
-                </p>
-                {activeWorries.map((w, i) => (
-                  <div
-                    key={w.id || i}
-                    className="rounded-lg bg-white/5 px-3 py-2 space-y-1.5"
-                  >
-                    <p className="text-sm text-violet-200">{w.worry || 'No worry text'}</p>
-                    {w.worstCase && (
-                      <p className="text-xs text-orange-400/80">
-                        <span className="font-medium">Worst case:</span> {w.worstCase}
-                      </p>
-                    )}
-                    {w.action && (
-                      <p className="text-xs text-emerald-400/80">
-                        <span className="font-medium">Action:</span> {w.action}
-                      </p>
-                    )}
+            ) : activeDays.length > 0 ? (
+              <div className="space-y-3">
+                {activeDays.map((day) => (
+                  <div key={day.dateKey} className="space-y-1.5">
+                    <p className="text-xs text-violet-500 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {day.dateKey}
+                    </p>
+                    {day.worries.map((w, i) => (
+                      <div
+                        key={w.id || i}
+                        className="rounded-lg bg-white/5 px-3 py-2 space-y-1.5"
+                      >
+                        <p className="text-sm text-violet-200">{w.worry || 'No worry text'}</p>
+                        {w.worstCase && (
+                          <p className="text-xs text-orange-400/80">
+                            <span className="font-medium">Worst case:</span> {w.worstCase}
+                          </p>
+                        )}
+                        {w.action && (
+                          <p className="text-xs text-emerald-400/80">
+                            <span className="font-medium">Action:</span> {w.action}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
             ) : (
               <p className="text-sm text-violet-400/50 text-center py-3">
-                No worries recorded for this date
+                No worries recorded in this period
               </p>
             )}
           </div>

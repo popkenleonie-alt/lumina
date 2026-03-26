@@ -9,26 +9,42 @@ export async function GET(req: NextRequest) {
   }
 
   const date = new Date(dateParam + 'T12:00:00');
-  const lookbackDates = {
+  const today = format(date, 'yyyy-MM-dd');
+  const ranges = {
     oneWeek: format(subWeeks(date, 1), 'yyyy-MM-dd'),
     oneMonth: format(subMonths(date, 1), 'yyyy-MM-dd'),
     oneYear: format(subYears(date, 1), 'yyyy-MM-dd'),
   };
 
+  // Fetch all entries from the longest range (1 year ago to yesterday)
   const entries = await prisma.journalDay.findMany({
     where: {
-      dateKey: { in: Object.values(lookbackDates) },
+      dateKey: { gte: ranges.oneYear, lt: today },
     },
     select: { dateKey: true, data: true },
+    orderBy: { dateKey: 'desc' },
   });
 
-  const result: Record<string, { dateKey: string; worries: unknown[] }> = {};
+  const result: Record<string, { dateKey: string; worries: unknown[] }[]> = {
+    oneWeek: [],
+    oneMonth: [],
+    oneYear: [],
+  };
 
-  for (const [period, dateKey] of Object.entries(lookbackDates)) {
-    const entry = entries.find((e) => e.dateKey === dateKey);
-    const data = entry?.data as Record<string, unknown> | undefined;
+  for (const entry of entries) {
+    const data = entry.data as Record<string, unknown> | undefined;
     const worries = Array.isArray(data?.worries) ? data.worries : [];
-    result[period] = { dateKey, worries };
+    if (worries.length === 0) continue;
+
+    const item = { dateKey: entry.dateKey, worries };
+
+    if (entry.dateKey >= ranges.oneWeek) {
+      result.oneWeek.push(item);
+    }
+    if (entry.dateKey >= ranges.oneMonth) {
+      result.oneMonth.push(item);
+    }
+    result.oneYear.push(item);
   }
 
   return NextResponse.json(result);
